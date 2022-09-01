@@ -7,9 +7,9 @@ from flasgger import Swagger, swag_from
 from src.config.swagger import template, swagger_config
 
 # blueprints
-from src.auth import auth
-from src.booking import booking
-from src.hotel import hotel
+from src.api.auth.auth import auth
+from src.api.booking.booking import booking
+from src.api.hotel.hotel import hotel
 
 from src.database import db
 
