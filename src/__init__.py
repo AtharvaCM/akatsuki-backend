@@ -14,6 +14,8 @@ from src.api.hotel.hotel import hotel
 from src.database import db
 
 
+
+
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
 
