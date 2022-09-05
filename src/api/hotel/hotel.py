@@ -1,8 +1,12 @@
 # Hotel blueprint
 # All hotel related API will be maintained here
 
+import json
 from flask import Blueprint, jsonify, request
 from flask_restful import Resource, Api, reqparse, abort
+
+# importing Model
+from src.models.HotelModel import Hotel
 
 # date helper
 from src.services.dateHepler import getCurrentDate, getNextDate
@@ -17,10 +21,6 @@ api = Api(hotel)
 
 parser = reqparse.RequestParser()
 
-# importing Model
-# from src.models.HotelModel.py import Hotel
-
-
 # class HotelList(Resource):
 #     def get(self):
 #         parser.add_argument('location', type=str, location='args')
@@ -28,13 +28,6 @@ parser = reqparse.RequestParser()
 #             'check_in_date', type=str, location='args')
 #         parser.add_argument(
 #             'check_out_date', type=str, location='args')
-
-#         # getting query params
-#         location = request.args.get('location', DEFAULT_LOCATION, type=str)
-#         check_in_date = request.args.get(
-#             'check_in_date', DEFAULT_CHECK_IN_DATE, type=str)
-#         check_out_date = request.args.get(
-#             'check_in_date', DEFAULT_CHECK_OUT_DATE, type=str)
 
 #         return jsonify(parser.parse_args(location, check_in_date, check_out_date))
 
@@ -48,7 +41,11 @@ class HotelList(Resource):
         check_out_date = request.args.get(
             'check_in_date', DEFAULT_CHECK_OUT_DATE, type=str)
 
-        return jsonify(dict(data=[location, check_in_date, check_out_date]))
+        hotels = Hotel.query.all()
+        jsonHotels = json.dumps(hotels)
+        print(jsonHotels)
+
+        return jsonify(dict(hotels=hotels))
 
 
 api.add_resource(HotelList, '/')

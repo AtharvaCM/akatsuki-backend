@@ -33,5 +33,8 @@ class Hotel(db.Model):
     amenity = db.relationship(
         Amenity, secondary=amenity_hotel, backref='types')
 
+    def serialize(self):
+        pass
+
     def __repr__(self) -> str:
-        return 'Hotel>>>{self.name}'
+        return f"{self.name}"
