@@ -38,9 +38,8 @@ class Hotel(db.Model):
     features = db.Column(db.ARRAY(db.String(50)), nullable=False)
     room_images = db.Column(db.ARRAY(db.String(255)), nullable=False)
     hotel_dp = db.Column(db.String(255), nullable=False) 
-    amenities = db.relationship('Amenities', secondary=amenities_hotel, backref='hotel')
-    extra_feature = db.relationship('extra_feature', secondary=hotel_extra_feature, backref='hotel')
-    #room_type = db.Column(db.String(50), db.ForeignKey('room_type'))  
+    amenities = db.relationship('Amenities', secondary=amenity_hotel, backref='hotel')
+    extra_feature = db.relationship('extra_feature', secondary=hotel_extra_feature, backref='hotel') 
     
 
     def __repr__(self) -> str:
