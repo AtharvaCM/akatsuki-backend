@@ -1,17 +1,16 @@
 from src.database import db
 from datetime import datetime
 
-amenities_hotel = db.Table(
-    db.Column('amenities_id', db.Integer,db.ForeignKey('amenities.id')),
-    db.Column('hotel_id', db.Integer,db.ForeignKey('hotel.id')),
+amenity_hotel = db.Table(
+    'amenity_hotel',
+    db.Column('amenity', db.Integer, db.ForeignKey(
+        'amenity.id'), primary_key=True),
+    db.Column('hotel', db.Integer, db.ForeignKey(
+        'hotel.id'), primary_key=True),
 )
 
-hotel_extra_feature = db.Table(
-    db.Column('hotel_id', db.Integer, db.ForeignKey('hotel_id')),
-    db.Column('feature_id', db.Integer, db.ForeignKey('feature_id'))
-)
 
-class Amenities(db.Model):
+class Amenity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(120), nullable=False)
 
