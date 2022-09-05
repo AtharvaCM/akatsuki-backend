@@ -9,6 +9,14 @@ amenity_hotel = db.Table(
         'hotel.id'), primary_key=True),
 )
 
+hotel_extra_feature = db.Table(
+    'hotel_extra_feature',
+    db.Column('hotel', db.Integer, db.ForeignKey(
+        'hotel.id'), primary_key=True),
+    db.Column('extra_feature', db.Integer, db.ForeignKey(
+        'feature.id'), primary_key=True),
+)
+
 
 class Amenity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
