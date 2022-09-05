@@ -23,7 +23,7 @@ class Amenity(db.Model):
     type = db.Column(db.String(120), nullable=False)
 
     def __repr__(self) -> str:
-        return f'Amenities>>>{self.type}'
+        return f'Amenity>>>{self.type}'
 
 class Hotel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -38,7 +38,7 @@ class Hotel(db.Model):
     features = db.Column(db.ARRAY(db.String(50)), nullable=False)
     room_images = db.Column(db.ARRAY(db.String(255)), nullable=False)
     hotel_dp = db.Column(db.String(255), nullable=False) 
-    amenities = db.relationship('Amenities', secondary=amenity_hotel, backref='hotel')
+    amenities = db.relationship('Amenity', secondary=amenity_hotel, backref='hotel')
     extra_feature = db.relationship('extra_feature', secondary=hotel_extra_feature, backref='hotel') 
     
 
@@ -48,7 +48,7 @@ class Hotel(db.Model):
     def __repr__(self) -> str:
         return f'Hotel>>>{self.name}'
 
-class Room(db.model):
+class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     hotel_id = db.Column(db.Integer, primary_key=True)
     cost = db.Column(db.Integer, nullable=False)
@@ -56,7 +56,7 @@ class Room(db.model):
     capacity_per_room = db.Column(db.Integer, nullable=False)
     available_rooms = db.Column(db.Integer, nullable=False)
     total_rooms = db.Column(db.Integer, nullable=False)
-    amenities = db.Column(db.Array(db.String(120)), nullable=False)
+    amenities = db.Column(db.ARRAY(db.String(120)), nullable=False)
     hotel = db.relationship('Hotel', backref='room')
     
     
@@ -64,14 +64,14 @@ class Room(db.model):
         return f'Room>>>{self.type}'
     
 
-class Booking(db.model):
+class Booking(db.Model):
     booking_code = db.Column(db.String(120), nullable=False)
     user_id = db.Column(db.Integer, primary_key=True)
     hotel_id = db.Column(db.Integer, primary_key=True)
     room_type = db.Column(db.String(50), nullable=False)
     check_in_date = db.Column(db.DateTime, default=datetime.now())
     check_out_date = db.Column(db.DateTime, default=datetime.now())
-    amount = db.Column(db.Integer(50), nullable=False)
+    amount = db.Column(db.Integer, nullable=False)
     payment = db.Column(db.String(120), nullable=False)
     number_of_rooms = db.Column(db.Integer, nullable=False)
     booking_Date = db.Column(db.DateTime, default=datetime.now())
@@ -86,7 +86,7 @@ class Booking(db.model):
         return f'Booking>>>{self.booking_code}'
     
     
-class Extra_feature(db.model):
+class Extrafeature(db.Model):
     hotel_id = db.Column(db.Integer, primary_key=True)
     feature_id = db.Column(db.Integer, primary_key=True)
     comp_key = db.Column(db.String(120), nullable=False)
@@ -94,10 +94,10 @@ class Extra_feature(db.model):
     
     
     def __repr__(self) -> str:
-        return f'Extra_feature>>>{self.type}'
+        return f'Extrafeature>>>{self.comp_key}'
     
     
-class User_search(db.model):
+class User_search(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
     hotel_id = db.Column(db.Integer, primary_key=True)
     city = db.Column(db.String(50), nullable=False)
@@ -111,7 +111,7 @@ class User_search(db.model):
         return f'user_search>>>{self.city}'
     
     
-class Booking_feature(db.model):
+class Booking_feature(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(120), nullable=False)
     booking = db.relationship('booking', backref='booking_feature')
@@ -121,13 +121,13 @@ class Booking_feature(db.model):
         return f'Booking_feature>>>{self.type}'
     
 
-class Review(db.model):
+class Review(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
     hotel_id = db.Column(db.Integer, primary_key=True)
     id = db.Column(db.Integer, primary_key=True)
     review_date = db.Column(db.Integer, nullable=False)
     rating = db.Column(db.Integer, nullable=False)
-    comment = db.column(db.String(255), nullable=False)
+    comment = db.Column(db.String(255), nullable=False)
     hotel = db.relationship('hotel', backref='review')
     user = db.relationship('user', backref='review')
     
