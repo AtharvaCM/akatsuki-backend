@@ -3,7 +3,7 @@
 
 import json
 from flask import Blueprint, jsonify, request
-from flask_restful import Resource, Api, reqparse, abort
+from flask_restful import Resource, Api, reqparse, abort, marshal_with, fields
 
 # importing Model
 from src.models.HotelModel import Hotel
@@ -31,8 +31,27 @@ parser = reqparse.RequestParser()
 
 #         return jsonify(parser.parse_args(location, check_in_date, check_out_date))
 
+hotel_fields = {
+    "id": fields.Integer,
+    "name": fields.String,
+    "address": fields.String,
+    "description": fields.String,
+    "ratings": fields.Integer,
+    "tags": fields.List(fields.String),
+    "city": fields.String,
+    "state": fields.String,
+    "country": fields.String,
+    "features": fields.List(fields.String),
+    "room_images": fields.List(fields.String),
+    "hotel_dp": fields.String
+
+}
+
+# Get the list of hotels available for check_in_date and check_out_date at provided location
+
 
 class HotelList(Resource):
+    @marshal_with(hotel_fields)
     def get(self):
         # getting query params
         location = request.args.get('location', DEFAULT_LOCATION, type=str)
@@ -41,11 +60,9 @@ class HotelList(Resource):
         check_out_date = request.args.get(
             'check_in_date', DEFAULT_CHECK_OUT_DATE, type=str)
 
-        hotels = Hotel.query.all()
-        jsonHotels = json.dumps(hotels)
-        print(jsonHotels)
+        hotels = Hotel.query.filter_by(location=location)
 
-        return jsonify(dict(hotels=hotels))
+        return hotels
 
 
 api.add_resource(HotelList, '/')

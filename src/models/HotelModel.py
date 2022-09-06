@@ -1,4 +1,5 @@
 from src.database import db
+import json
 
 amenity_hotel = db.Table(
     'amenity_hotel',
@@ -33,8 +34,5 @@ class Hotel(db.Model):
     amenity = db.relationship(
         Amenity, secondary=amenity_hotel, backref='types')
 
-    def serialize(self):
-        pass
-
     def __repr__(self) -> str:
-        return f"{self.name}"
+        return json.dumps(self.to_json())
