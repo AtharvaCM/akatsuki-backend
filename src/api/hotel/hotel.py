@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, request
 from flask_restful import Resource, Api, reqparse, abort, marshal_with, fields
 
 # importing Model
-from src.models.HotelModel import Hotel
+from src.models import Hotel
 
 # date helper
 from src.services.dateHepler import getCurrentDate, getNextDate
