@@ -17,6 +17,7 @@ hotel_extra_feature = db.Table(
         'extrafeature.id'), primary_key=True),
 )
 
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(30), unique=True, nullable=False)
@@ -25,12 +26,12 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.now())
     updated_at = db.Column(db.DateTime, onupdate=datetime.now())
 
-    bookings = db.relationship('Booking', backref='booking')
-    reviews = db.relationship('Review', backref='review')
-
+    bookings = db.relationship('Booking', backref='user_booking')
+    reviews = db.relationship('Review', backref='user_review')
 
     def __repr__(self) -> str:
         return f'{self.username}'
+
 
 class Amenity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -38,6 +39,7 @@ class Amenity(db.Model):
 
     def __repr__(self) -> str:
         return f'{self.type}'
+
 
 class Hotel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -51,18 +53,20 @@ class Hotel(db.Model):
     country = db.Column(db.String(50), nullable=False)
     features = db.Column(db.ARRAY(db.String(50)), nullable=False)
     room_images = db.Column(db.ARRAY(db.String(255)), nullable=False)
-    hotel_dp = db.Column(db.String(255), nullable=False) 
+    hotel_dp = db.Column(db.String(255), nullable=False)
 
-    rooms = db.relationship('Room', backref='room')
-    bookings = db.relationship('Booking', backref='booking')
-    reviews = db.relationship('Review', backref='review')
-    
-    amenities = db.relationship('Amenity', secondary=amenity_hotel, lazy='subquery', backref=db.backref('hotels', lazy=True))
-    extra_features = db.relationship('Extrafeature', secondary=hotel_extra_feature, lazy='subquery', backref=db.backref('hotels', lazy=True)) 
-    
+    rooms = db.relationship('Room', backref='hotel_room')
+    bookings = db.relationship('Booking', backref='hotel_booking')
+    reviews = db.relationship('Review', backref='hotel_review')
+
+    amenities = db.relationship('Amenity', secondary=amenity_hotel,
+                                lazy='subquery', backref=db.backref('hotels', lazy=True))
+    extra_features = db.relationship(
+        'Extrafeature', secondary=hotel_extra_feature, lazy='subquery', backref=db.backref('hotels', lazy=True))
 
     def __repr__(self) -> str:
         return f'{self.name}'
+
 
 class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -73,14 +77,13 @@ class Room(db.Model):
     total_rooms = db.Column(db.Integer, nullable=False)
     features = db.Column(db.ARRAY(db.String(120)), nullable=False)
 
-    bookings = db.relationship('Booking', backref='booking')
+    bookings = db.relationship('Booking', backref='room_booking')
 
     hotel_id = db.Column(db.Integer, db.ForeignKey('hotel.id'), nullable=False)
-    
-    
+
     def __repr__(self) -> str:
         return f'{self.room_type}'
-    
+
 
 class Booking(db.Model):
     booking_code = db.Column(db.String(120), primary_key=True)
@@ -95,22 +98,22 @@ class Booking(db.Model):
     created_on = db.Column(db.DateTime(), default=datetime.now())
     updated_on = db.Column(db.DateTime(), default=datetime.now())
 
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)     
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     hotel_id = db.Column(db.Integer, db.ForeignKey('hotel.id'), nullable=False)
     room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
-    
+
     def __repr__(self) -> str:
         return f'{self.booking_code}'
-    
-    
+
+
 class Extrafeature(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable= False)
+    name = db.Column(db.String(50), nullable=False)
     cost = db.Column(db.Integer, nullable=False)
-    
-    
+
     def __repr__(self) -> str:
         return f'{self.name}'
+
 
 class Review(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -119,7 +122,6 @@ class Review(db.Model):
     comment = db.Column(db.String(255), nullable=False)
     hotel_id = db.Column(db.Integer, db.ForeignKey('hotel.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    
-    
+
     def __repr__(self) -> str:
         return f'{self.comment}'
