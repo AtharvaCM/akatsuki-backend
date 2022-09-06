@@ -41,7 +41,7 @@ class HotelList(Resource):
         check_out_date = request.args.get(
             'check_in_date', DEFAULT_CHECK_OUT_DATE, type=str)
 
-        hotels = Hotel.query.all()
+        hotels = Hotel.query.all()      # we can add limit using limit() method
         jsonHotels = json.dumps(hotels)
         print(jsonHotels)
 
@@ -49,3 +49,4 @@ class HotelList(Resource):
 
 
 api.add_resource(HotelList, '/')
+      
