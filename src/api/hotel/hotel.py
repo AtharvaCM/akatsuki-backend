@@ -51,7 +51,7 @@ hotel_fields = {
 
 
 class HotelList(Resource):
-    @marshal_with(hotel_fields)
+    @marshal_with(hotel_fields, envelope="data")
     def get(self):
         # getting query params
         location = request.args.get('location', DEFAULT_LOCATION, type=str)
@@ -63,15 +63,15 @@ class HotelList(Resource):
         print(location)
 
         subquery = db.session.query(Booking.hotel_id
-        ).filter(Booking.check_in_date >= check_in_date
-        ).filter(Booking.check_out_date <= check_out_date).subquery()
+                                    ).filter(Booking.check_in_date >= check_in_date
+                                             ).filter(Booking.check_out_date <= check_out_date).subquery()
 
         hotels = db.session.query(Hotel
-        ).filter(Hotel.city == location            
-        ).filter(Hotel.id.not_in(subquery)).order_by(Hotel.ratings.desc()).all()
+                                  ).filter(Hotel.city == location
+                                           ).filter(Hotel.id.not_in(subquery)).order_by(Hotel.ratings.desc()).all()
         #hotels = db.session.query(Hotel, Booking).filter(db.and_(Hotel.city == 'Kovalam', Hotel.id.not_in(Booking.hotel_id))).all()
-        
 
         return hotels
+
 
 api.add_resource(HotelList, '/')
