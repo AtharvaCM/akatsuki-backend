@@ -254,6 +254,9 @@ class User(Model):
     def __repr__(self) -> str:
         return f'{self.username}'
 
+    default_fields = ['id', 'username', 'email',
+                      'password', 'created_at', 'updated_at']
+
 
 class Amenity(Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -261,6 +264,8 @@ class Amenity(Model):
 
     def __repr__(self) -> str:
         return f'{self.type}'
+
+    default_fields = ['id', 'type']
 
 
 class Hotel(Model):
@@ -289,6 +294,9 @@ class Hotel(Model):
     def __repr__(self) -> str:
         return f'{self.name}'
 
+    default_fields = ['id', 'name', 'address', 'description', 'ratings',
+                      'tags', 'city', 'state', 'country', 'features', 'room_images', 'hotel_dp']
+
 
 class Room(Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -306,6 +314,9 @@ class Room(Model):
     def __repr__(self) -> str:
         return f'{self.room_type}'
 
+    default_fields = ['id', 'cost', 'room_type', 'capacity_per_room',
+                      'available_rooms', 'total_rooms', 'features']
+
 
 class Booking(Model):
     booking_code = db.Column(db.String(120), primary_key=True)
@@ -315,7 +326,7 @@ class Booking(Model):
     amount = db.Column(db.Integer, nullable=False)
     payment = db.Column(db.String(120), nullable=False)
     number_of_rooms = db.Column(db.Integer, nullable=False)
-    booking_Date = db.Column(db.DateTime, default=datetime.now())
+    booking_date = db.Column(db.DateTime, default=datetime.now())
     travelers = db.Column(db.Integer, nullable=False)
     created_on = db.Column(db.DateTime(), default=datetime.now())
     updated_on = db.Column(db.DateTime(), default=datetime.now())
@@ -327,6 +338,10 @@ class Booking(Model):
     def __repr__(self) -> str:
         return f'{self.booking_code}'
 
+    default_fields = ['booking_code', 'room_type', 'check_in_date',
+                      'check_out_date', 'amount', 'payment', 'number_of_rooms',
+                      'booking_date', 'travelers', 'created_at', 'updated_at']
+
 
 class Extrafeature(Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -336,14 +351,19 @@ class Extrafeature(Model):
     def __repr__(self) -> str:
         return f'{self.name}'
 
+    default_fields = ['id', 'name', 'cost']
+
 
 class Review(Model):
     id = db.Column(db.Integer, primary_key=True)
     review_date = db.Column(db.Integer, nullable=False)
     rating = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.String(255), nullable=False)
+
     hotel_id = db.Column(db.Integer, db.ForeignKey('hotel.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def __repr__(self) -> str:
         return f'{self.comment}'
+
+    default_fields = ['id', 'review_date', 'rating', 'comment']
