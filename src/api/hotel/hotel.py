@@ -4,15 +4,15 @@
 import json
 from flask import Blueprint, jsonify, request
 from flask_restful import Resource, Api, reqparse, abort, marshal_with, fields
+from src.database import db
 
 # importing Model
-from src.models.HotelModel import Hotel
-
+from src.models import Hotel, Booking
 # date helper
 from src.services.dateHepler import getCurrentDate, getNextDate
 
 # default values
-DEFAULT_LOCATION = 'Fallback_Pune'
+DEFAULT_LOCATION = 'Kovalam'
 DEFAULT_CHECK_IN_DATE = getCurrentDate("%m/%d/%y")
 DEFAULT_CHECK_OUT_DATE = getNextDate("%m/%d/%y")
 
@@ -60,9 +60,18 @@ class HotelList(Resource):
         check_out_date = request.args.get(
             'check_in_date', DEFAULT_CHECK_OUT_DATE, type=str)
 
-        hotels = Hotel.query.filter_by(location=location)
+        print(location)
+
+        subquery = db.session.query(Booking.hotel_id
+        ).filter(Booking.check_in_date >= check_in_date
+        ).filter(Booking.check_out_date <= check_out_date).subquery()
+
+        hotels = db.session.query(Hotel
+        ).filter(Hotel.city == location            
+        ).filter(Hotel.id.not_in(subquery)).order_by(Hotel.ratings.desc()).all()
+        #hotels = db.session.query(Hotel, Booking).filter(db.and_(Hotel.city == 'Kovalam', Hotel.id.not_in(Booking.hotel_id))).all()
+        
 
         return hotels
-
 
 api.add_resource(HotelList, '/')
