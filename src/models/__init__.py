@@ -289,9 +289,6 @@ class Hotel(Model):
     def __repr__(self) -> str:
         return f'{self.name}'
 
-    def to_dict(self):
-        ret_data = {}
-
 
 class Room(Model):
     id = db.Column(db.Integer, primary_key=True)
