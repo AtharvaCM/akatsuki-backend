@@ -76,6 +76,4 @@ class HotelDetails(Resource):
         return hotel
         
 api.add_resource(HotelDetails, '/HotelList/<int:Number>')
-
-      
-      
+        
