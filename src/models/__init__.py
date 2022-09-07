@@ -17,12 +17,14 @@ hotel_extra_feature = db.Table(
         'extrafeature.id'), primary_key=True),
 )
 
-
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    name= db.Column(db.String(50), nullable=False)
     username = db.Column(db.String(30), unique=True, nullable=False)
-    email = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.Text(), nullable=False)
+    email = db.Column(db.String(50), unique=True, nullable=False)
+    age = db.Column(db.Integer, nullable=False)
+    avatar = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now())
     updated_at = db.Column(db.DateTime, onupdate=datetime.now())
 
@@ -39,7 +41,6 @@ class Amenity(db.Model):
 
     def __repr__(self) -> str:
         return f'{self.type}'
-
 
 class Hotel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -81,22 +82,22 @@ class Room(db.Model):
 
     hotel_id = db.Column(db.Integer, db.ForeignKey('hotel.id'), nullable=False)
 
+    db.UniqueConstraint(room_type, hotel_id)
+
     def __repr__(self) -> str:
         return f'{self.room_type}'
 
-
 class Booking(db.Model):
     booking_code = db.Column(db.String(120), primary_key=True)
-    room_type = db.Column(db.String(50), nullable=False)
     check_in_date = db.Column(db.DateTime, default=datetime.now())
     check_out_date = db.Column(db.DateTime, default=datetime.now())
     amount = db.Column(db.Integer, nullable=False)
-    payment = db.Column(db.String(120), nullable=False)
+    payment_method = db.Column(db.String(120), nullable=False)
     number_of_rooms = db.Column(db.Integer, nullable=False)
-    booking_Date = db.Column(db.DateTime, default=datetime.now())
+    booking_date = db.Column(db.DateTime, default=datetime.now())
     travelers = db.Column(db.Integer, nullable=False)
-    created_on = db.Column(db.DateTime(), default=datetime.now())
-    updated_on = db.Column(db.DateTime(), default=datetime.now())
+    ts_created = db.Column(db.DateTime(), default=datetime.now())
+    ts_updated = db.Column(db.DateTime(), default=datetime.now())
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     hotel_id = db.Column(db.Integer, db.ForeignKey('hotel.id'), nullable=False)
@@ -105,7 +106,6 @@ class Booking(db.Model):
     def __repr__(self) -> str:
         return f'{self.booking_code}'
 
-
 class Extrafeature(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
@@ -113,7 +113,6 @@ class Extrafeature(db.Model):
 
     def __repr__(self) -> str:
         return f'{self.name}'
-
 
 class Review(db.Model):
     id = db.Column(db.Integer, primary_key=True)
