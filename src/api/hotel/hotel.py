@@ -7,7 +7,7 @@ from flask_restful import Resource, Api, reqparse, abort, marshal_with, fields
 from src.database import db
 
 # importing Model
-from src.models import Hotel, Booking
+from src.models import Hotel, Booking, Room
 # date helper
 from src.services.dateHepler import getCurrentDate, getNextDate
 
@@ -22,15 +22,6 @@ api = Api(hotel)
 
 parser = reqparse.RequestParser()
 
-# class HotelList(Resource):
-#     def get(self):
-#         parser.add_argument('location', type=str, location='args')
-#         parser.add_argument(
-#             'check_in_date', type=str, location='args')
-#         parser.add_argument(
-#             'check_out_date', type=str, location='args')
-
-#         return jsonify(parser.parse_args(location, check_in_date, check_out_date))
 
 hotel_fields = {
     "id": fields.Integer,
@@ -62,22 +53,31 @@ class HotelList(Resource):
             'check_in_date', DEFAULT_CHECK_OUT_DATE, type=str)
         page = request.args.get('page', DEFAULT_PAGE, type=int)
         
-
+        ''''
         subquery = db.session.query(Booking.hotel_id
         ).filter(Booking.check_in_date >= check_in_date
         ).filter(Booking.check_out_date <= check_out_date).subquery()
-
-        '''
+    
         hotels = db.session.query(Hotel
         ).filter(Hotel.city == location            
         ).filter(Hotel.id.not_in(subquery)).order_by(Hotel.ratings.desc()).all()
         
-        '''
-        
         pagination = db.session.query(Hotel
         ).filter(Hotel.city == location            
         ).filter(Hotel.id.not_in(subquery)).order_by(Hotel.ratings.desc()).paginate(page, per_page=2)
+        '''
+        subquery1 = db.session.query(Booking.hotel_id
+        ).filter(Booking.check_in_date >= check_in_date
+        ).filter(Booking.check_out_date <= check_out_date).subquery()
 
+        subquery2 = db.session.query(Room.hotel_id
+        ).filter(Room.available_rooms>0
+        ).filter(Hotel.id.not_in(subquery1)).subquery()
+
+    
+        pagination = db.session.query(Hotel
+        ).filter(Hotel.city == location            
+        ).filter(Hotel.id.in_(subquery2)).order_by(Hotel.ratings.desc()).paginate(page, per_page=2)
 
         return pagination.items
         
