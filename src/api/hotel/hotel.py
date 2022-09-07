@@ -73,9 +73,9 @@ class HotelDetails(Resource):
   @marshal_with(hotel_fields)
   def get(self):
         hotel_id = parser.add_argument('id', type=int)
-        hotel = Hotel.query.filter_by(id = hotel_id).first()  #for more efficiency we can use order_by
+        hotel = Hotel.query.filter_by(id = hotel_id).first()  
         
         return hotel
-        
+    
 api.add_resource(HotelDetails, '/HotelList/<int:Number>')
         
