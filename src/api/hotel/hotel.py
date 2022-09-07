@@ -67,6 +67,8 @@ class HotelList(Resource):
 
 api.add_resource(HotelList, '/')
 
+
+
 class HotelDetails(Resource):
   @marshal_with(hotel_fields)
   def get(self):
