@@ -10,7 +10,7 @@ from flasgger import swag_from
 from src.database import db
 
 # importing Model
-from src.models import Hotel, Booking
+from src.models import Hotel, Booking, requested_columns
 # date helper
 from src.services.dateHepler import getCurrentDate, getNextDate
 
@@ -55,7 +55,7 @@ hotel_serializer = {
 
 class HotelList(Resource):
     @swag_from('./docs/hotel/hotel_list.yaml', endpoint="hotel.hotel_list")
-    @marshal_with(hotel_serializer, envelope="data")
+    # @marshal_with(hotel_serializer, envelope="data")
     def get(self):
         # getting query params
         location = request.args.get('location', DEFAULT_LOCATION, type=str)
@@ -74,11 +74,14 @@ class HotelList(Resource):
                                   ).filter(Hotel.city == location
                                            ).filter(Hotel.id.not_in(subquery)).order_by(Hotel.ratings.desc()).all()
         #hotels = db.session.query(Hotel, Booking).filter(db.and_(Hotel.city == 'Kovalam', Hotel.id.not_in(Booking.hotel_id))).all()
-        has_next = False
         print(hotels)
+        show = requested_columns(request)
+        response = []
+        for hotel in hotels:
+            response.append(hotel.to_dict(show=show))
 
         # print(data)
-        return hotels
+        return jsonify(dict(data=response))
 
 
 api.add_resource(HotelList, '/', endpoint="hotel_list")
