@@ -81,7 +81,7 @@ class HotelList(Resource):
             response.append(hotel.to_dict(show=show))
 
         # print(data)
-        return jsonify(dict(data=response))
+        return jsonify(dict(has_next=False, data=response))
 
 
 api.add_resource(HotelList, '/', endpoint="hotel_list")
