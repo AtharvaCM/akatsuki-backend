@@ -80,11 +80,11 @@ api.add_resource(HotelList, '/')
 
 class HotelDetails(Resource):
   @marshal_with(hotel_fields)
-  def get(self):
-        hotel_id = parser.add_argument('id', type=int)
-        hotel = Hotel.query.filter_by(id = hotel_id).first()  
+  def get(self,id):
+        #hotel_id = parser.add_argument('id', type=int)
+        hotel = Hotel.query.filter_by(id = id).first()  
         
         return hotel
     
-api.add_resource(HotelDetails, '/<int:Number>')
+api.add_resource(HotelDetails, '/<int:id>')
         
