@@ -5,8 +5,8 @@ import json
 from flask import Blueprint, jsonify, request
 from flask_restful import Resource, Api, reqparse, abort, marshal_with, fields
 
-from flasgger import swag_from
-
+# from flasgger.utils import swag_from, Swagger
+from flasgger.utils import swag_from
 from src.database import db
 
 # importing Model
@@ -29,9 +29,11 @@ parser = reqparse.RequestParser()
 
 
 class HotelList(Resource):
-    @swag_from('./docs/hotel/hotel_list.yaml', endpoint="hotel.hotel_list")
+    # @swag_from("./docs/hotel/hotel_list.yaml")
+    # @swag_from('./docs/hotel/hotel_list.yml', endpoint="hotel.hotel_list")
     def get(self):
         # getting query params
+        """file = ./docs/hotel/hotel_list.yaml """
         location = request.args.get('location', DEFAULT_LOCATION, type=str)
         check_in_date = request.args.get(
             'check_in_date', DEFAULT_CHECK_IN_DATE, type=str)

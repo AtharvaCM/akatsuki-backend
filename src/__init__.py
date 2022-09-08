@@ -3,7 +3,7 @@ from flask_restful import Api
 
 import os
 
-from flasgger import Swagger
+from flasgger import Swagger, swag_from
 from src.config.swagger import template, swagger_config
 
 # blueprints
