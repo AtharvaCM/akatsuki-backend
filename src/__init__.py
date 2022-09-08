@@ -3,13 +3,13 @@ from flask_restful import Api
 
 import os
 
-from flasgger import Swagger, swag_from
+from flasgger import Swagger
 from src.config.swagger import template, swagger_config
 
 # blueprints
-from src.auth import auth
-from src.booking import booking
-from src.hotel import hotel
+from src.api.auth.auth import auth
+from src.api.booking.booking import booking
+from src.api.hotel.hotel import hotel
 
 from src.database import db
 
@@ -23,7 +23,7 @@ def create_app(test_config=None):
             SQLALCHEMY_DATABASE_URI=os.environ.get("SQLALCHEMY_DATABASE_URI"),
             SWAGGER={
                 'title': "Hotel Booking API",
-                'uiversion': 3
+                'uiversion': 3,
             }
         )
     else:
