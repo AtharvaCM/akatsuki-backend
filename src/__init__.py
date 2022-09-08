@@ -1,9 +1,10 @@
 from flask import Flask
 from flask_restful import Api
+from flask_cors import CORS
 
 import os
 
-from flasgger import Swagger, swag_from
+from flasgger import Swagger
 from src.config.swagger import template, swagger_config
 
 # blueprints
@@ -12,8 +13,6 @@ from src.api.booking.booking import booking
 from src.api.hotel.hotel import hotel
 
 from src.database import db
-
-
 
 
 def create_app(test_config=None):
@@ -25,7 +24,7 @@ def create_app(test_config=None):
             SQLALCHEMY_DATABASE_URI=os.environ.get("SQLALCHEMY_DATABASE_URI"),
             SWAGGER={
                 'title': "Hotel Booking API",
-                'uiversion': 3
+                'uiversion': 3,
             }
         )
     else:
@@ -34,6 +33,10 @@ def create_app(test_config=None):
     # db init
     db.app = app
     db.init_app(app)
+
+    # CORS Config
+    CORS(app, resources={
+        r"/api/v1/*": {"origins": [os.environ.get("REACT_ENDPOINT"), "http://localhost:3000"]}})
 
     #  register blueprints
     app.register_blueprint(auth)
