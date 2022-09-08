@@ -1,7 +1,5 @@
 # Hotel blueprint
 # All hotel related API will be maintained here
-
-import json
 from flask import Blueprint, jsonify, request
 from flask_restful import Resource, Api, reqparse, abort, marshal_with, fields
 
@@ -10,7 +8,8 @@ from flasgger import swag_from
 from src.database import db
 
 # importing Model
-from src.models import Hotel, Booking, requested_columns
+from src.models import Hotel, Booking, requested_columns, Room
+
 # date helper
 from src.services.dateHepler import getCurrentDate, getNextDate
 
@@ -24,8 +23,6 @@ hotel = Blueprint("hotel", __name__, url_prefix="/api/v1/hotels")
 api = Api(hotel)
 
 parser = reqparse.RequestParser()
-
-# Get the list of hotels available for check_in_date and check_out_date at provided location
 
 
 class HotelList(Resource):
@@ -57,3 +54,41 @@ class HotelList(Resource):
 
 
 api.add_resource(HotelList, '/', endpoint="hotel_list")
+
+
+class HotelDetails(Resource):
+    def get(self, id):
+        hotel = Hotel.query.filter_by(id=id).first()
+
+        return jsonify(dict(data=hotel))
+
+
+api.add_resource(HotelDetails, '/<int:id>')
+
+
+class RoomList(Resource):
+    def get(self, id):
+        rooms = db.session.query(
+            Room.room_type).filter_by(hotel_id=id)
+
+        return jsonify(dict(data=rooms))
+
+
+api.add_resource(RoomList, '/<int:id>/rooms')
+
+'''
+hotel_post_args = reqparse.RequestParser()
+hotel_post_args.add_argument('booking_code', type=int, required=True)
+hotel_post_args.add_argument('booking_date', type=date, required=True)
+hotel_post_args.add_argument('total_amount', type=int, required=True)
+hotel_post_args.add_argument('payment_method', type=str, required=True)
+hotel_post_args.add_argument('dates', type=date, required=True)
+hotel_post_args.add_argument('travelers', type=int, required=True)
+hotel_post_args.add_argument('no_of_rooms', type=str, required=True)
+
+class BookingConfirm(Resource):
+    def post(self, HotelDetails):
+	    temp = {'Hotels': name}
+		.append(temp)
+		return temp
+'''
