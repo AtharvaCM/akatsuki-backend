@@ -52,11 +52,6 @@ hotel_fields = {
 
 }
 
-hotel_room_type = {
-    "room_type": fields.List(fields.String)
-}
-
-
 # Get the list of hotels available for check_in_date and check_out_date at provided location
 
 
@@ -95,14 +90,13 @@ class HotelDetails(Resource):
     
 api.add_resource(HotelDetails, '/<int:id>')
 
-class RoomType(Resource):
-    @marshal_with(hotel_room_type)
+class RoomList(Resource):
     def get(self, id):
-        Room_type = db.session.query(Hotel.room_type).filter_by(id = id).first()
+        Room_type = db.session.query(Room.room_type).filter_by(hotel_id = id).first()
         
         return Room_type
 
-api.add_resource(RoomType, '/<int:id>/Room_type')
+api.add_resource(RoomList, '/<int:id>/rooms')
 
 '''
 hotel_post_args = reqparse.RequestParser()
