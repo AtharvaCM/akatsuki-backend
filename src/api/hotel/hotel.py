@@ -8,11 +8,13 @@ from src.database import db
 
 # importing Model
 from src.models import Hotel, Booking, Room
+from sqlalchemy.sql import func
+
 # date helper
 from src.services.dateHepler import getCurrentDate, getNextDate
 
 # default values
-DEFAULT_LOCATION = 'Kovalam'
+DEFAULT_LOCATION = 'Manali'
 DEFAULT_CHECK_IN_DATE = getCurrentDate("%m/%d/%y")
 DEFAULT_CHECK_OUT_DATE = getNextDate("%m/%d/%y")
 DEFAULT_PAGE = 1
@@ -65,7 +67,7 @@ class HotelList(Resource):
         pagination = db.session.query(Hotel
         ).filter(Hotel.city == location            
         ).filter(Hotel.id.not_in(subquery)).order_by(Hotel.ratings.desc()).paginate(page, per_page=2)
-        '''
+        
         subquery1 = db.session.query(Booking.hotel_id
         ).filter(Booking.check_in_date >= check_in_date
         ).filter(Booking.check_out_date <= check_out_date).subquery()
@@ -73,13 +75,36 @@ class HotelList(Resource):
         subquery2 = db.session.query(Room.hotel_id
         ).filter(Room.available_rooms>0
         ).filter(Hotel.id.not_in(subquery1)).subquery()
-
-    
+        '''
+        '''
+        subquery()
+        print(subquery2.)
         pagination = db.session.query(Hotel
         ).filter(Hotel.city == location            
         ).filter(Hotel.id.in_(subquery2)).order_by(Hotel.ratings.desc()).paginate(page, per_page=2)
+        '''
+        #query = db.session.query(Hotel.id
+        #).filter(func.sum(Booking.number_of_rooms) < Room.total_rooms
+        #).filter(Booking.room_type == Room.room_type).subquery()
 
-        return pagination.items
+        #subquery1 = db.session.query(Hotel.id,
+        #).filter(Booking.room_type == Room.room_type
+        #).filter(db.func.sum(Booking.number_of_rooms) == Room.total_rooms).subquery()
+
+        #subquery1 = db.session.query(db.func.sum(Booking.number_of_rooms).label('sum_of_bookings')
+        #).filter(Booking.sum_of_bookings == Room.total_rooms
+        #).filter(Booking.room_type == Room.room_type).subquery()
+
+        query = db.session.query(Hotel.id, db.func.sum(Booking.number_of_rooms).label('sum_b')
+        ).filter(Booking.room_id == Room.id).group_by(Hotel.id).subquery()
+
+        subquery2 = db.session.query(Hotel.id
+        ).filter(Booking.check_in_date >= check_in_date
+        ).filter(Booking.check_out_date <= check_out_date
+        ).filter(Room.total_rooms > (query)).all()
+        print(query)
+        print(subquery2)
+        return subquery2
         
 
 api.add_resource(HotelList, '/')
