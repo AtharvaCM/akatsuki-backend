@@ -1,7 +1,7 @@
 # Hotel blueprint
 # All hotel related API will be maintained here
 from flask import Blueprint, jsonify, request
-from flask_restful import Resource, Api, reqparse, abort, marshal_with, fields
+from flask_restful import Resource, Api, reqparse
 
 from flasgger import swag_from
 
@@ -25,6 +25,22 @@ api = Api(hotel)
 parser = reqparse.RequestParser()
 
 
+class LocationList(Resource):
+    def get(self):
+        locations = db.session.query(Hotel.city).distinct().all()
+        print(locations)
+        locations_list = []
+
+        for loc in locations:
+            (location,) = loc
+            locations_list.append(location)
+
+        return jsonify(dict(data=locations_list))
+
+
+api.add_resource(LocationList, '/locations', endpoint="location_list")
+
+
 class HotelList(Resource):
     @swag_from('./docs/hotel/hotel_list.yaml', endpoint="hotel.hotel_list")
     def get(self):
@@ -38,48 +54,51 @@ class HotelList(Resource):
 
         show = requested_columns(request)
 
-        subquery = db.session.query(Booking.hotel_id
-                                    ).filter(Booking.check_in_date >= check_in_date
-                                             ).filter(Booking.check_out_date <= check_out_date).subquery()
+        # subquery = db.session.query(Booking.hotel_id
+        #                             ).filter(Booking.check_in_date >= check_in_date
+        #                                      ).filter(Booking.check_out_date <= check_out_date).subquery()
 
-        subquery1 = db.session.query(Booking.hotel_id
-                                     ).filter(Booking.check_in_date >= check_in_date
-                                              ).filter(Booking.check_out_date <= check_out_date).subquery()
-
-        subquery2 = db.session.query(Hotel
-                                     ).filter(Hotel.city == location
-                                              ).filter(Hotel.id.in_(subquery1)).distinct().all()
+        # subquery1 = db.session.query(Hotel.id
+        #                              ).filter(Hotel.city == location
+        #                                       ).subquery()
 
         # get all the hotels that are booked for the given date range
-        hotel_id_list = db.session.query(Booking.hotel_id
-                                         ).filter(db.and_(Hotel.id == Booking.hotel_id, Hotel.city == location)
-                                                  ).filter(Booking.check_in_date >= check_in_date
-                                                           ).filter(Booking.check_out_date <= check_out_date).distinct().all()
+        # hotel_id_list = db.session.query(Hotel
+        #                                  ).filter(Booking.hotel_id.not_in(subquery1)
+        #                                           ).filter(Booking.check_in_date >= check_in_date
+        #                                                    ).filter(Booking.check_out_date <= check_out_date).distinct().all()
 
-        print('hotel_id_list', hotel_id_list)
+        # print('hotel_id_list', hotel_id_list)
 
-        room_types_available = []
+        # available_hotels = []
         # get all the rooms for the given hotel_id for the given date range
-        for hotel_id in [5]:
-            rooms = db.session.query(Booking.room_id).filter(
-                Booking.hotel_id == hotel_id).distinct().all()
-            print("rooms", rooms)
-        for room in rooms:
-            # get sum of booked rooms for room type
-            room_count = db.session.query(db.func.sum(
-                Booking.number_of_rooms)).filter(Booking.room_id == 14).all()
-            print("room_count", room_count)
+        # for hotel_id in [5]:
+        #     rooms = db.session.query(Booking.room_id).filter(
+        #         Booking.hotel_id == hotel_id).distinct().all()
+        #     print("rooms", rooms)
+        #     for room in rooms:
+        #         # get sum of booked rooms for room type
+        #         room_count_tuple = db.session.query(db.func.sum(
+        #             Booking.number_of_rooms)).filter(Booking.room_id == 14).first()
+        #         (room_count,) = room_count_tuple
+        #         print("room_count", room_count)
+        #         if room_count > 0:
+        #             available_hotels.append(hotel_id)
 
-        # print(room_types_available)
+        # print(available_hotels)
 
         # subquery2 = db.session.query(Room
         # ).filter(Room.available_rooms>0
         # ).filter(Hotel.id.not_in(subquery1)).subquery()
 
         # get all hotels for the given location
+        # pagination = db.session.query(Hotel
+        #                               ).filter(Hotel.city == location
+        #                                        ).filter(Hotel.id.not_in(subquery)).order_by(Hotel.ratings.desc()).paginate(page, per_page=2)
+
         pagination = db.session.query(Hotel
                                       ).filter(Hotel.city == location
-                                               ).filter(Hotel.id.not_in(subquery)).order_by(Hotel.ratings.desc()).paginate(page, per_page=2)
+                                               ).order_by(Hotel.ratings.desc()).paginate(page, per_page=2)
 
         hotels_serialized = []
 
@@ -119,20 +138,3 @@ class RoomList(Resource):
 
 
 api.add_resource(RoomList, '/<int:id>/rooms')
-
-'''
-hotel_post_args = reqparse.RequestParser()
-hotel_post_args.add_argument('booking_code', type=int, required=True)
-hotel_post_args.add_argument('booking_date', type=date, required=True)
-hotel_post_args.add_argument('total_amount', type=int, required=True)
-hotel_post_args.add_argument('payment_method', type=str, required=True)
-hotel_post_args.add_argument('dates', type=date, required=True)
-hotel_post_args.add_argument('travelers', type=int, required=True)
-hotel_post_args.add_argument('no_of_rooms', type=str, required=True)
-
-class BookingConfirm(Resource):
-    def post(self, HotelDetails):
-	    temp = {'Hotels': name}
-		.append(temp)
-		return temp
-'''
