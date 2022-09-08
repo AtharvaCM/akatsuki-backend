@@ -35,8 +35,8 @@ def create_app(test_config=None):
     db.init_app(app)
 
     # CORS Config
-    cors = CORS(app, resources={
-                r"/api/v1/*": {"origins": os.environ.get("REACT_ENDPOINT")}})
+    CORS(app, resources={
+        r"/api/v1/*": {"origins": [os.environ.get("REACT_ENDPOINT"), "http://localhost:3000"]}})
 
     #  register blueprints
     app.register_blueprint(auth)
