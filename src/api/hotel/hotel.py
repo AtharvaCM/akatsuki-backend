@@ -45,12 +45,12 @@ class HotelList(Resource):
                                                ).filter(Hotel.id.not_in(subquery)).order_by(Hotel.ratings.desc()).paginate(page, per_page=2)
 
         show = requested_columns(request)
-        response = []
+        hotels_serialized = []
 
         for hotel in pagination.items:
-            response.append(hotel.to_dict(show=show))
+            hotels_serialized.append(hotel.to_dict(show=show))
 
-        return jsonify(dict(has_next=pagination.has_next, data=response))
+        return jsonify(dict(has_next=pagination.has_next, data=hotels_serialized))
 
 
 api.add_resource(HotelList, '/', endpoint="hotel_list")
@@ -60,7 +60,10 @@ class HotelDetails(Resource):
     def get(self, id):
         hotel = Hotel.query.filter_by(id=id).first()
 
-        return jsonify(dict(data=hotel))
+        show = requested_columns(request)
+        hotel_serialized = hotel.to_dict(show=show)
+
+        return jsonify(dict(data=hotel_serialized))
 
 
 api.add_resource(HotelDetails, '/<int:id>')
@@ -68,10 +71,15 @@ api.add_resource(HotelDetails, '/<int:id>')
 
 class RoomList(Resource):
     def get(self, id):
-        rooms = db.session.query(
-            Room.room_type).filter_by(hotel_id=id)
+        rooms = db.session.query(Room).filter(Room.hotel_id == id).all()
 
-        return jsonify(dict(data=rooms))
+        show = requested_columns(request)
+        rooms_serialized = []
+
+        for room in rooms:
+            rooms_serialized.append(room.to_dict(show=show))
+
+        return jsonify(dict(data=rooms_serialized))
 
 
 api.add_resource(RoomList, '/<int:id>/rooms')
