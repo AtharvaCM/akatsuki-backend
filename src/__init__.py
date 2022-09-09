@@ -36,7 +36,7 @@ def create_app(test_config=None):
 
     # CORS Config
     CORS(app, resources={
-        r"/api/v1/*": {"origins": [os.environ.get("REACT_APP_FLASK_DOMAIN"), "http://localhost:3000"]}})
+        r"/api/v1/*": {"origins": [os.environ.get("REACT_DOMAIN"), "http://localhost:3000"]}})
 
     #  register blueprints
     app.register_blueprint(auth)
