@@ -35,10 +35,8 @@ def create_app(test_config=None):
     db.init_app(app)
 
     # CORS Config
-    CORS(app, resources={
-        r"/api/v1/*": {"origins": [os.environ.get("REACT_DOMAIN"), "http://localhost:3000"]}})
+    CORS(app)
 
-    app.config['CORS_HEADERS'] = 'Content-Type'
     #  register blueprints
     app.register_blueprint(auth)
     app.register_blueprint(hotel)
