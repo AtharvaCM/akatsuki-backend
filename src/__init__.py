@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 from flask_restful import Api
 from flask_cors import CORS
 
@@ -38,6 +38,7 @@ def create_app(test_config=None):
     CORS(app, resources={
         r"/api/v1/*": {"origins": [os.environ.get("REACT_DOMAIN"), "http://localhost:3000"]}})
 
+    app.config['CORS_HEADERS'] = 'Content-Type'
     #  register blueprints
     app.register_blueprint(auth)
     app.register_blueprint(hotel)
