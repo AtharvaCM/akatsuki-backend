@@ -356,7 +356,8 @@ class Extrafeature(Model):
 
 class Review(Model):
     id = db.Column(db.Integer, primary_key=True)
-    review_date = db.Column(db.Integer, nullable=False)
+    review_date = db.Column(
+        db.DateTime(), nullable=False, default=datetime.now())
     rating = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.String(255), nullable=False)
 
