@@ -42,7 +42,7 @@ api.add_resource(LocationList, '/locations', endpoint="location_list")
 
 
 class HotelList(Resource):
-    @swag_from('./docs/hotel/hotel_list.yaml', endpoint="hotel.hotel_list")
+    # @swag_from('./docs/hotel/hotel_list.yaml', endpoint="hotel.hotel_list")
     def get(self):
         # getting query params
         location = request.args.get('location', DEFAULT_LOCATION, type=str)
@@ -54,51 +54,22 @@ class HotelList(Resource):
 
         show = requested_columns(request)
 
-        # subquery = db.session.query(Booking.hotel_id
-        #                             ).filter(Booking.check_in_date >= check_in_date
-        #                                      ).filter(Booking.check_out_date <= check_out_date).subquery()
+        query = db.session.query(Booking.room_id, db.func.sum(Booking.number_of_rooms).label('sum_b')
+                                 ).filter(Booking.check_in_date >= check_in_date
+                                          ).filter(Booking.check_out_date <= check_out_date
+                                                   ).group_by(Booking.room_id).subquery()
 
-        # subquery1 = db.session.query(Hotel.id
-        #                              ).filter(Hotel.city == location
-        #                                       ).subquery()
+        subquery2 = db.session.query(Room.id
+                                     ).filter(Room.id == (query.c.room_id)
+                                              ).filter(Room.total_rooms <= (query.c.sum_b)).subquery()
 
-        # get all the hotels that are booked for the given date range
-        # hotel_id_list = db.session.query(Hotel
-        #                                  ).filter(Booking.hotel_id.not_in(subquery1)
-        #                                           ).filter(Booking.check_in_date >= check_in_date
-        #                                                    ).filter(Booking.check_out_date <= check_out_date).distinct().all()
-
-        # print('hotel_id_list', hotel_id_list)
-
-        # available_hotels = []
-        # get all the rooms for the given hotel_id for the given date range
-        # for hotel_id in [5]:
-        #     rooms = db.session.query(Booking.room_id).filter(
-        #         Booking.hotel_id == hotel_id).distinct().all()
-        #     print("rooms", rooms)
-        #     for room in rooms:
-        #         # get sum of booked rooms for room type
-        #         room_count_tuple = db.session.query(db.func.sum(
-        #             Booking.number_of_rooms)).filter(Booking.room_id == 14).first()
-        #         (room_count,) = room_count_tuple
-        #         print("room_count", room_count)
-        #         if room_count > 0:
-        #             available_hotels.append(hotel_id)
-
-        # print(available_hotels)
-
-        # subquery2 = db.session.query(Room
-        # ).filter(Room.available_rooms>0
-        # ).filter(Hotel.id.not_in(subquery1)).subquery()
-
-        # get all hotels for the given location
-        # pagination = db.session.query(Hotel
-        #                               ).filter(Hotel.city == location
-        #                                        ).filter(Hotel.id.not_in(subquery)).order_by(Hotel.ratings.desc()).paginate(page, per_page=2)
+        subquery3 = db.session.query(Room.hotel_id
+                                     ).filter(Room.id.not_in(subquery2)
+                                              ).filter(Room.total_rooms > 0).subquery()
 
         pagination = db.session.query(Hotel
                                       ).filter(Hotel.city == location
-                                               ).order_by(Hotel.ratings.desc()).paginate(page, per_page=2)
+                                               ).filter(Hotel.id.in_(subquery3)).order_by(Hotel.ratings.desc()).paginate(page, per_page=2)
 
         hotels_serialized = []
 
