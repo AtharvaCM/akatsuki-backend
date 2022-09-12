@@ -124,16 +124,16 @@ class RoomList(Resource):
         ).filter(Booking.check_out_date <= check_out_date
         ).filter(Booking.hotel_id==id).group_by(Booking.hotel_id)]
 
-        print(total_rooms_booked)
+        print(f'Total number of rooms booked : {total_rooms_booked}')
 
         # Calculating the total numbers of rooms in a particular hotel
         total_no_rooms = [row[1] for row in db.session.query(Room.hotel_id, db.func.sum(Room.total_rooms).label('sum_t')
         ).filter(Room.hotel_id==id).group_by(Room.hotel_id)]
 
-        print(total_no_rooms)
+        print(f'Total number of rooms in hotel : {total_no_rooms}')
 
         hiked = int(total_no_rooms[0]*0.8)
-        print(hiked)
+        print(f'80% of Total num of rooms : {hiked}')
         is_Hiked = False
         if(len(total_rooms_booked)>0):
             is_Hiked = total_rooms_booked[0]>=hiked
