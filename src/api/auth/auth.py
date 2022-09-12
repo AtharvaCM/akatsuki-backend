@@ -122,13 +122,12 @@ def token_required(f):
        return f(current_user, *args, **kwargs)
    return decorator
 
-class Register():
-    def post(): 
-        data = request.get_json() 
-        hashed_password = generate_password_hash(data['password'], method='sha256')
+class Register(Resource):
+    def post(self): 
+        data = request.json
+        hashed_password = generate_password_hash(data.get('password'), method='sha256')
         
-        #    new_user = Users(public_id=str(uuid.uuid4()), name=data['name'], password=hashed_password, admin=False)
-        new_user = User(id=str(uuid.uuid4()), username=data['username'], password=hashed_password)
+        new_user = User(id=str(uuid.uuid4()), username=data.get('username'),email=data.get('email'), password=hashed_password)
 
         db.session.add(new_user) 
         db.session.commit()   
@@ -138,18 +137,20 @@ class Login(Resource):
     def post(self):
         
         auth = request.json
-        
+
         if not auth and not auth.get("username") or not auth.get("password") : 
-            return make_response('could not verifyyy', 401, {'Authentication': 'login required"'})   
+            return jsonify({'Authentication': 'login required','is_authenticate': False,'token' : None})   
         user = User.query.filter_by(username=auth.get("username")).first()  
         print(user.password)
         print(auth.get("password"))
-        if user.password == auth.get("password"):
+        # if user.password == auth.get("password"):
+        if check_password_hash(user.password, auth.get("password")):
             token = jwt.encode({'id' : user.id}, SECRET_KEY, "HS256")
         
             return jsonify({'token' : token, 'is_authenticate': True}, 200)
         
-        return make_response('could not verify',  401, {'Authentication': '"login required"'})
+        return jsonify({'Authentication': 'login required','is_authenticate': False,'token' : None})
 
 api = Api(auth)
 api.add_resource(Login, '/login')
+api.add_resource(Register, '/register')
