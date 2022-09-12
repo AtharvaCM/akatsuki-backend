@@ -104,7 +104,7 @@ hotel_post_args.add_argument('room_type', type=str, required=True)
 
 class BookingConfirm(Resource):
     def post(self):
-	    new_Booking = Booking(user_id= DEFAULT_UDER_ID, booking_code =  DEFAULT_BOOKING_CODE, booking_date = DEFAULT_BOOKING_DATE, total_amount =  DEFAULT_TOTAL_AMOUNT,payment_method = DEFAULT_PAYMENT_METHOD, travelers = DEFAULT_TRAVELERS,no_of_rooms = DEFAULT_NO_OF_ROOMS, check_in_date = DEFAULT_CHECK_IN_DATE,check_out_date = DEFAULT_CHECK_OUT_DATE, room_type = DEFAULT_ROOM_TYPE )
+        new_Booking = Booking(user_id= DEFAULT_UDER_ID, booking_code =  DEFAULT_BOOKING_CODE, booking_date = DEFAULT_BOOKING_DATE, total_amount =  DEFAULT_TOTAL_AMOUNT,payment_method = DEFAULT_PAYMENT_METHOD, travelers = DEFAULT_TRAVELERS,no_of_rooms = DEFAULT_NO_OF_ROOMS, check_in_date = DEFAULT_CHECK_IN_DATE,check_out_date = DEFAULT_CHECK_OUT_DATE, room_type = DEFAULT_ROOM_TYPE )
         db.session.add(new_Booking)
         db.session.commit()
         return {"message": f"Your booking {new_Booking.booking_code} has been done."}
