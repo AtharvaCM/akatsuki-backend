@@ -1,5 +1,7 @@
 # Hotel blueprint
 # All hotel related API will be maintained here
+from datetime import datetime
+import json
 from flask import Blueprint, jsonify, request
 from flask_restful import Resource, Api, reqparse
 
@@ -8,10 +10,13 @@ from flasgger import swag_from
 from src.database import db
 
 # importing Model
-from src.models import Hotel, Booking, requested_columns, Room
+from src.models import Hotel, Booking, Model, Review, Room, requested_columns
 
 # date helper
 from src.services.dateHepler import getCurrentDate, getNextDate
+
+# error codes
+from src.api.error import errors
 
 # default values
 DEFAULT_LOCATION = 'Kovalam'
@@ -25,6 +30,7 @@ api = Api(hotel)
 parser = reqparse.RequestParser()
 
 
+# GET - returns a list of all distinct locations from the Hotel table
 class LocationList(Resource):
     def get(self):
         locations = db.session.query(Hotel.city).distinct().all()
@@ -40,9 +46,11 @@ class LocationList(Resource):
 
 api.add_resource(LocationList, '/locations', endpoint="location_list")
 
+# GET - returns a list of hotels based on location, check-in & check-out date
+
 
 class HotelList(Resource):
-    @swag_from('./docs/hotel/hotel_list.yaml', endpoint="hotel.hotel_list")
+    # @swag_from('./docs/hotel/hotel_list.yaml', endpoint="hotel.hotel_list")
     def get(self):
         # getting query params
         location = request.args.get('location', DEFAULT_LOCATION, type=str)
@@ -54,51 +62,22 @@ class HotelList(Resource):
 
         show = requested_columns(request)
 
-        # subquery = db.session.query(Booking.hotel_id
-        #                             ).filter(Booking.check_in_date >= check_in_date
-        #                                      ).filter(Booking.check_out_date <= check_out_date).subquery()
+        query = db.session.query(Booking.room_id, db.func.sum(Booking.number_of_rooms).label('sum_b')
+                                 ).filter(Booking.check_in_date >= check_in_date
+                                          ).filter(Booking.check_out_date <= check_out_date
+                                                   ).group_by(Booking.room_id).subquery()
 
-        # subquery1 = db.session.query(Hotel.id
-        #                              ).filter(Hotel.city == location
-        #                                       ).subquery()
+        subquery2 = db.session.query(Room.id
+                                     ).filter(Room.id == (query.c.room_id)
+                                              ).filter(Room.total_rooms <= (query.c.sum_b)).subquery()
 
-        # get all the hotels that are booked for the given date range
-        # hotel_id_list = db.session.query(Hotel
-        #                                  ).filter(Booking.hotel_id.not_in(subquery1)
-        #                                           ).filter(Booking.check_in_date >= check_in_date
-        #                                                    ).filter(Booking.check_out_date <= check_out_date).distinct().all()
-
-        # print('hotel_id_list', hotel_id_list)
-
-        # available_hotels = []
-        # get all the rooms for the given hotel_id for the given date range
-        # for hotel_id in [5]:
-        #     rooms = db.session.query(Booking.room_id).filter(
-        #         Booking.hotel_id == hotel_id).distinct().all()
-        #     print("rooms", rooms)
-        #     for room in rooms:
-        #         # get sum of booked rooms for room type
-        #         room_count_tuple = db.session.query(db.func.sum(
-        #             Booking.number_of_rooms)).filter(Booking.room_id == 14).first()
-        #         (room_count,) = room_count_tuple
-        #         print("room_count", room_count)
-        #         if room_count > 0:
-        #             available_hotels.append(hotel_id)
-
-        # print(available_hotels)
-
-        # subquery2 = db.session.query(Room
-        # ).filter(Room.available_rooms>0
-        # ).filter(Hotel.id.not_in(subquery1)).subquery()
-
-        # get all hotels for the given location
-        # pagination = db.session.query(Hotel
-        #                               ).filter(Hotel.city == location
-        #                                        ).filter(Hotel.id.not_in(subquery)).order_by(Hotel.ratings.desc()).paginate(page, per_page=2)
+        subquery3 = db.session.query(Room.hotel_id
+                                     ).filter(Room.id.not_in(subquery2)
+                                              ).filter(Room.total_rooms > 0).subquery()
 
         pagination = db.session.query(Hotel
                                       ).filter(Hotel.city == location
-                                               ).order_by(Hotel.ratings.desc()).paginate(page, per_page=2)
+                                               ).filter(Hotel.id.in_(subquery3)).order_by(Hotel.ratings.desc()).paginate(page, per_page=2)
 
         hotels_serialized = []
 
@@ -111,6 +90,7 @@ class HotelList(Resource):
 api.add_resource(HotelList, '/', endpoint="hotel_list")
 
 
+# GET - returns details of a particular hotel
 class HotelDetails(Resource):
     def get(self, id):
         hotel = Hotel.query.filter_by(id=id).first()
@@ -138,3 +118,107 @@ class RoomList(Resource):
 
 
 api.add_resource(RoomList, '/<int:id>/rooms')
+
+# GET - returns a list of extra features for a given hotel
+
+
+class ExtrafeaturesList(Resource):
+    def get(self, id):
+        # the hotel for which we want to get the extra features
+        hotel = Hotel.query.filter_by(id=id).first()
+        extra_features = hotel.extra_features
+
+        show = requested_columns(request)
+        extrafeatures_serialized = []
+
+        for extra_feature in extra_features:
+            extrafeatures_serialized.append(extra_feature.to_dict(show=show))
+
+        return jsonify(dict(data=extrafeatures_serialized))
+
+
+api.add_resource(ExtrafeaturesList,  '/<int:id>/extrafeatures')
+
+
+# GET - returns list of reviews for a given hotel
+# POST - adds a review if it does not already exist
+class ReviewList(Resource):
+    def get(self, id):
+        # the hotel for which we want to get all reviews
+        hotel = Hotel.query.filter_by(id=id).first()
+        reviews = hotel.reviews
+
+        show = requested_columns(request)
+        reviews_serialized = []
+
+        for review in reviews:
+            reviews_serialized.append(review.to_dict(show=show))
+
+        return jsonify(dict(data=reviews_serialized))
+
+    def post(self, id):
+        # write the timestamp
+        review_date = datetime.now()
+
+        try:
+            # Get rating, comment and user_id.
+            rating, comment, user_id = (
+                request.json.get("rating"),
+                request.json.get("comment").strip(),
+                request.json.get("user_id"),
+            )
+        except Exception as why:
+            # Log input strip or etc. errors.
+            print("user_id, rating or comment is wrong. " + str(why))
+            # Return invalid input error.
+            return errors.INVALID_INPUT_422
+
+        # Check if any field is none.
+        if user_id is None or rating is None or comment is None:
+            return errors.INVALID_INPUT_422
+
+        # check if review already exists
+        review = db.session.query(Review).filter(
+            Review.user_id == user_id).filter(Review.hotel_id == id).first()
+
+        if review is not None:
+            return errors.ALREADY_EXIST
+
+        # Create new review
+        review = Review(review_date=review_date, rating=rating,
+                        comment=comment, hotel_id=id, user_id=user_id)
+
+        db.session.add(review)
+        db.session.commit()
+
+        return jsonify(dict(status="Review added successfully"))
+
+
+api.add_resource(ReviewList, '/<int:id>/reviews')
+
+
+class ReviewDetails(Resource):
+    def get(self, id):
+        try:
+            # Get user_id.
+            user_id = request.json.get("user_id")
+        except Exception as why:
+            # Log input strip or etc. errors.
+            print("user_id is wrong. " + str(why))
+            # Return invalid input error.
+            return errors.INVALID_INPUT_422
+
+        # check if review already exists
+        review = db.session.query(Review).filter(
+            Review.user_id == user_id).filter(Review.hotel_id == id).first()
+
+        if review is not None:
+            show = requested_columns(request)
+            review_serialized = review.to_dict(show=show)
+
+            return jsonify(dict(data=review_serialized, message="Review exists", reviewPresent=True))
+        else:
+            return jsonify(dict(data={}, message="Review not found", reviewPresent=False))
+
+
+api.add_resource(ReviewDetails, '/<int:id>/reviews/check-review')
