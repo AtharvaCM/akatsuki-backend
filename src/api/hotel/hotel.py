@@ -213,9 +213,12 @@ class ReviewDetails(Resource):
             Review.user_id == user_id).filter(Review.hotel_id == id).first()
 
         if review is not None:
-            return jsonify(dict(message="Review exists", reviewPresent=True))
+            show = requested_columns(request)
+            review_serialized = review.to_dict(show=show)
+
+            return jsonify(dict(data=review_serialized, message="Review exists", reviewPresent=True))
         else:
-            return jsonify(dict(message="Review not found", reviewPresent=False))
+            return jsonify(dict(data={}, message="Review not found", reviewPresent=False))
 
 
 api.add_resource(ReviewDetails, '/<int:id>/reviews/check-review')
