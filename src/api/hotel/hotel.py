@@ -105,14 +105,14 @@ class RoomList(Resource):
 
         # Calculating the sum of room booked for a particular room type of a hotel w.r.t check-in and check-out date
         query = db.session.query(Booking.room_id, db.func.sum(Booking.number_of_rooms).label('sum_b')
-        ).filter(Booking.check_in_date >= check_in_date
-        ).filter(Booking.check_out_date <= check_out_date
-        ).group_by(Booking.room_id).subquery()
+                                 ).filter(Booking.check_in_date >= check_in_date
+                                          ).filter(Booking.check_out_date <= check_out_date
+                                                   ).group_by(Booking.room_id).subquery()
 
         # Getting the list of Room ids which is fully booked for that Room type
         subquery2 = db.session.query(Room.id
-        ).filter(Room.id == (query.c.room_id)     
-        ).filter(Room.total_rooms == (query.c.sum_b)).subquery()
+                                     ).filter(Room.id == (query.c.room_id)
+                                              ).filter(Room.total_rooms == (query.c.sum_b)).subquery()
 
         # Getting the list of Rooms which are available
         available_rooms = db.session.query(Room
@@ -120,17 +120,17 @@ class RoomList(Resource):
 	    ).filter(Room.hotel_id == id).all()
 
         # Calculating the total numbers of rooms booked for a particular hotel
-        
+
         total_rooms_booked = [r[1] for r in db.session.query(Booking.hotel_id, db.func.sum(Booking.number_of_rooms).label('sum_r')
-        ).filter(Booking.check_in_date >= check_in_date
-        ).filter(Booking.check_out_date <= check_out_date
-        ).filter(Booking.hotel_id==id).group_by(Booking.hotel_id)]
+                                                             ).filter(Booking.check_in_date >= check_in_date
+                                                                      ).filter(Booking.check_out_date <= check_out_date
+                                                                               ).filter(Booking.hotel_id == id).group_by(Booking.hotel_id)]
 
         print(f'Total number of rooms booked : {total_rooms_booked}')
         
         # Calculating the total numbers of rooms in a particular hotel
         total_no_rooms = [row[1] for row in db.session.query(Room.hotel_id, db.func.sum(Room.total_rooms).label('sum_t')
-        ).filter(Room.hotel_id==id).group_by(Room.hotel_id)]
+                                                             ).filter(Room.hotel_id == id).group_by(Room.hotel_id)]
 
         print(f'Total number of rooms in hotel : {total_no_rooms}')
     
@@ -143,16 +143,21 @@ class RoomList(Resource):
         hiked = int(total_no_rooms[0]*0.8)
         print(f'80% of Total num of rooms : {hiked}')
         is_Hiked = False
-        if(len(total_rooms_booked)>0):
-            is_Hiked = total_rooms_booked[0]>=hiked
+        if (len(total_rooms_booked) > 0):
+            is_Hiked = total_rooms_booked[0] >= hiked
 
-        print(is_Hiked)      
+        print(is_Hiked)
 
         show = requested_columns(request)
         rooms_serialized = []
 
         for room in available_rooms:
-            rooms_serialized.append(room.to_dict(show=show))
+            # Write query here
+            no_of_rooms_booked_query = ''
+            room_dict = room.to_dict(show=show)
+            room_dict['available_rooms'] = room.total_rooms - \
+                no_of_rooms_booked_query
+            rooms_serialized.append(room_dict)
 
         return jsonify(dict(data=rooms_serialized, isHiked=is_Hiked, rooms_available=vacant_room))
 
