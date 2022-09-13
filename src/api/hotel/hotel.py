@@ -1,5 +1,7 @@
 # Hotel blueprint
 # All hotel related API will be maintained here
+from datetime import datetime
+import json
 from flask import Blueprint, jsonify, request
 from flask_restful import Resource, Api, reqparse
 
@@ -9,10 +11,13 @@ from sqlalchemy.sql import func
 from src.database import db
 
 # importing Model
-from src.models import Hotel, Booking, requested_columns, Room
+from src.models import Hotel, Booking, Model, Review, Room, requested_columns
 
 # date helper
 from src.services.dateHepler import getCurrentDate, getNextDate
+
+# error codes
+from src.api.error import errors
 
 # default values
 DEFAULT_LOCATION = 'Kovalam'
@@ -25,7 +30,8 @@ api = Api(hotel)
 
 parser = reqparse.RequestParser()
 
-# Getting the list of cities
+
+# GET - returns a list of all distinct locations from the Hotel table
 class LocationList(Resource):
     def get(self):
         locations = db.session.query(Hotel.city).distinct().all()
@@ -40,6 +46,8 @@ class LocationList(Resource):
 
 
 api.add_resource(LocationList, '/locations', endpoint="location_list")
+
+# GET - returns a list of hotels based on location, check-in & check-out date
 
 
 class HotelList(Resource):
@@ -87,6 +95,7 @@ class HotelList(Resource):
 api.add_resource(HotelList, '/', endpoint="hotel_list")
 
 
+# GET - returns details of a particular hotel
 class HotelDetails(Resource):
     def get(self, id):
         hotel = Hotel.query.filter_by(id=id).first()
@@ -167,3 +176,107 @@ class RoomList(Resource):
 
 
 api.add_resource(RoomList, '/<int:id>/rooms')
+
+# GET - returns a list of extra features for a given hotel
+
+
+class ExtrafeaturesList(Resource):
+    def get(self, id):
+        # the hotel for which we want to get the extra features
+        hotel = Hotel.query.filter_by(id=id).first()
+        extra_features = hotel.extra_features
+
+        show = requested_columns(request)
+        extrafeatures_serialized = []
+
+        for extra_feature in extra_features:
+            extrafeatures_serialized.append(extra_feature.to_dict(show=show))
+
+        return jsonify(dict(data=extrafeatures_serialized))
+
+
+api.add_resource(ExtrafeaturesList,  '/<int:id>/extrafeatures')
+
+
+# GET - returns list of reviews for a given hotel
+# POST - adds a review if it does not already exist
+class ReviewList(Resource):
+    def get(self, id):
+        # the hotel for which we want to get all reviews
+        hotel = Hotel.query.filter_by(id=id).first()
+        reviews = hotel.reviews
+
+        show = requested_columns(request)
+        reviews_serialized = []
+
+        for review in reviews:
+            reviews_serialized.append(review.to_dict(show=show))
+
+        return jsonify(dict(data=reviews_serialized))
+
+    def post(self, id):
+        # write the timestamp
+        review_date = datetime.now()
+
+        try:
+            # Get rating, comment and user_id.
+            rating, comment, user_id = (
+                request.json.get("rating"),
+                request.json.get("comment").strip(),
+                request.json.get("user_id"),
+            )
+        except Exception as why:
+            # Log input strip or etc. errors.
+            print("user_id, rating or comment is wrong. " + str(why))
+            # Return invalid input error.
+            return errors.INVALID_INPUT_422
+
+        # Check if any field is none.
+        if user_id is None or rating is None or comment is None:
+            return errors.INVALID_INPUT_422
+
+        # check if review already exists
+        review = db.session.query(Review).filter(
+            Review.user_id == user_id).filter(Review.hotel_id == id).first()
+
+        if review is not None:
+            return errors.ALREADY_EXIST
+
+        # Create new review
+        review = Review(review_date=review_date, rating=rating,
+                        comment=comment, hotel_id=id, user_id=user_id)
+
+        db.session.add(review)
+        db.session.commit()
+
+        return jsonify(dict(status="Review added successfully"))
+
+
+api.add_resource(ReviewList, '/<int:id>/reviews')
+
+
+class ReviewDetails(Resource):
+    def get(self, id):
+        try:
+            # Get user_id.
+            user_id = request.json.get("user_id")
+        except Exception as why:
+            # Log input strip or etc. errors.
+            print("user_id is wrong. " + str(why))
+            # Return invalid input error.
+            return errors.INVALID_INPUT_422
+
+        # check if review already exists
+        review = db.session.query(Review).filter(
+            Review.user_id == user_id).filter(Review.hotel_id == id).first()
+
+        if review is not None:
+            show = requested_columns(request)
+            review_serialized = review.to_dict(show=show)
+
+            return jsonify(dict(data=review_serialized, message="Review exists", reviewPresent=True))
+        else:
+            return jsonify(dict(data={}, message="Review not found", reviewPresent=False))
+
+
+api.add_resource(ReviewDetails, '/<int:id>/reviews/check-review')
