@@ -314,8 +314,8 @@ class Room(Model):
     def __repr__(self) -> str:
         return f'{self.room_type}'
 
-    default_fields = ['id', 'cost', 'room_type', 'capacity_per_room',
-                      'available_rooms', 'total_rooms', 'features']
+    default_fields = ['id', 'cost', 'room_type',
+                      'capacity_per_room', 'total_rooms', 'features']
 
 
 class Booking(Model):
