@@ -90,10 +90,12 @@
 
 
 
-from flask import Flask, jsonify, make_response, request, Blueprint 
+from flask import Flask, jsonify, make_response, request, Blueprint, session 
 from werkzeug.security import generate_password_hash,check_password_hash
 from functools import wraps
 from flask_restful import Resource, Api, abort, reqparse
+from datetime import datetime
+
 from src.database import db 
 from src.models import User
 import uuid
@@ -103,6 +105,13 @@ import os
 auth = Blueprint("auth", __name__, url_prefix="/api/v1/auth")
 
 SECRET_KEY=os.environ.get("SECRET_KEY")
+
+class Ses(Resource):
+    def home():
+        if not session.get('logged_in'):
+            return 'error'
+        else:
+            return 'logged in currently'
 
 def token_required(f):
    @wraps(f)
@@ -127,11 +136,13 @@ class Register(Resource):
         data = request.json
         hashed_password = generate_password_hash(data.get('password'), method='sha256')
         
-        new_user = User(id=str(uuid.uuid4()), username=data.get('username'),email=data.get('email'), password=hashed_password)
+        new_user = User(id=data.get('id'), name=data.get('name'), username=data.get('username'),email=data.get('email'), password=hashed_password,avatar = data.get('avatar'), created_at=datetime.now(), updated_at=datetime.now())
 
         db.session.add(new_user) 
         db.session.commit()   
         return jsonify({'message': 'registered successfully'})
+
+
 
 class Login(Resource):
     def post(self):
@@ -145,6 +156,7 @@ class Login(Resource):
         print(auth.get("password"))
         # if user.password == auth.get("password"):
         if check_password_hash(user.password, auth.get("password")):
+            session['logged_in'] = True
             token = jwt.encode({'id' : user.id}, SECRET_KEY, "HS256")
         
             return jsonify({'token' : token, 'is_authenticate': True}, 200)
@@ -154,3 +166,4 @@ class Login(Resource):
 api = Api(auth)
 api.add_resource(Login, '/login')
 api.add_resource(Register, '/register')
+api.add_resource(Ses, '/')
