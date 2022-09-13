@@ -218,4 +218,4 @@ class ReviewDetails(Resource):
             return jsonify(dict(message="Review not found", reviewPresent=False))
 
 
-api.add_resource(ReviewList, '/<int:id>/reviews/check-review')
+api.add_resource(ReviewDetails, '/<int:id>/reviews/check-review')
