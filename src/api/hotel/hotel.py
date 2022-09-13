@@ -16,8 +16,8 @@ from src.services.dateHepler import getCurrentDate, getNextDate
 
 # default values
 DEFAULT_LOCATION = 'Kovalam'
-DEFAULT_CHECK_IN_DATE = '2022-09-13' #getCurrentDate("%m/%d/%y")
-DEFAULT_CHECK_OUT_DATE = '2022-09-14' #getNextDate("%m/%d/%y")
+DEFAULT_CHECK_IN_DATE = getCurrentDate("%m/%d/%y")
+DEFAULT_CHECK_OUT_DATE = getNextDate("%m/%d/%y")
 DEFAULT_PAGE = 1
 
 hotel = Blueprint("hotel", __name__, url_prefix="/api/v1/hotels")
@@ -103,18 +103,20 @@ class RoomList(Resource):
         check_out_date = request.args.get(
             'check_in_date', DEFAULT_CHECK_OUT_DATE, type=str)
 
+        # Calculating the sum of room booked for a particular room type of a hotel w.r.t check-in and check-out date
         query = db.session.query(Booking.room_id, db.func.sum(Booking.number_of_rooms).label('sum_b')
         ).filter(Booking.check_in_date >= check_in_date
         ).filter(Booking.check_out_date <= check_out_date
         ).group_by(Booking.room_id).subquery()
 
+        # Getting the list of Room ids which is fully booked for that Room type
         subquery2 = db.session.query(Room.id
         ).filter(Room.id == (query.c.room_id)     
         ).filter(Room.total_rooms == (query.c.sum_b)).subquery()
 
+        # Getting the list of Rooms which are available
         available_rooms = db.session.query(Room
         ).filter(Room.id.not_in(subquery2)
-        ).filter(Room.total_rooms > 0
 	    ).filter(Room.hotel_id == id).all()
 
         # Calculating the total numbers of rooms booked for a particular hotel
@@ -125,12 +127,18 @@ class RoomList(Resource):
         ).filter(Booking.hotel_id==id).group_by(Booking.hotel_id)]
 
         print(f'Total number of rooms booked : {total_rooms_booked}')
-
+        
         # Calculating the total numbers of rooms in a particular hotel
         total_no_rooms = [row[1] for row in db.session.query(Room.hotel_id, db.func.sum(Room.total_rooms).label('sum_t')
         ).filter(Room.hotel_id==id).group_by(Room.hotel_id)]
 
         print(f'Total number of rooms in hotel : {total_no_rooms}')
+    
+        vacant_room = []
+        for data in available_rooms:
+
+            print(data)
+
 
         hiked = int(total_no_rooms[0]*0.8)
         print(f'80% of Total num of rooms : {hiked}')
@@ -146,7 +154,7 @@ class RoomList(Resource):
         for room in available_rooms:
             rooms_serialized.append(room.to_dict(show=show))
 
-        return jsonify(dict(data=rooms_serialized, isHiked=is_Hiked))
+        return jsonify(dict(data=rooms_serialized, isHiked=is_Hiked, rooms_available=vacant_room))
 
 
 api.add_resource(RoomList, '/<int:id>/rooms')
