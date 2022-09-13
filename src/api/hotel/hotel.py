@@ -16,8 +16,8 @@ from src.services.dateHepler import getCurrentDate, getNextDate
 
 # default values
 DEFAULT_LOCATION = 'Kovalam'
-DEFAULT_CHECK_IN_DATE = '2022-09-13' #getCurrentDate("%m/%d/%y")
-DEFAULT_CHECK_OUT_DATE = '2022-09-14' #getNextDate("%m/%d/%y")
+DEFAULT_CHECK_IN_DATE = '2022-09-13'  # getCurrentDate("%m/%d/%y")
+DEFAULT_CHECK_OUT_DATE = '2022-09-14'  # getNextDate("%m/%d/%y")
 DEFAULT_PAGE = 1
 
 hotel = Blueprint("hotel", __name__, url_prefix="/api/v1/hotels")
@@ -104,47 +104,52 @@ class RoomList(Resource):
             'check_in_date', DEFAULT_CHECK_OUT_DATE, type=str)
 
         query = db.session.query(Booking.room_id, db.func.sum(Booking.number_of_rooms).label('sum_b')
-        ).filter(Booking.check_in_date >= check_in_date
-        ).filter(Booking.check_out_date <= check_out_date
-        ).group_by(Booking.room_id).subquery()
+                                 ).filter(Booking.check_in_date >= check_in_date
+                                          ).filter(Booking.check_out_date <= check_out_date
+                                                   ).group_by(Booking.room_id).subquery()
 
         subquery2 = db.session.query(Room.id
-        ).filter(Room.id == (query.c.room_id)     
-        ).filter(Room.total_rooms == (query.c.sum_b)).subquery()
+                                     ).filter(Room.id == (query.c.room_id)
+                                              ).filter(Room.total_rooms == (query.c.sum_b)).subquery()
 
         available_rooms = db.session.query(Room
-        ).filter(Room.id.not_in(subquery2)
-        ).filter(Room.total_rooms > 0
-	    ).filter(Room.hotel_id == id).all()
+                                           ).filter(Room.id.not_in(subquery2)
+                                                    ).filter(Room.total_rooms > 0
+                                                             ).filter(Room.hotel_id == id).all()
 
         # Calculating the total numbers of rooms booked for a particular hotel
-        
+
         total_rooms_booked = [r[1] for r in db.session.query(Booking.hotel_id, db.func.sum(Booking.number_of_rooms).label('sum_r')
-        ).filter(Booking.check_in_date >= check_in_date
-        ).filter(Booking.check_out_date <= check_out_date
-        ).filter(Booking.hotel_id==id).group_by(Booking.hotel_id)]
+                                                             ).filter(Booking.check_in_date >= check_in_date
+                                                                      ).filter(Booking.check_out_date <= check_out_date
+                                                                               ).filter(Booking.hotel_id == id).group_by(Booking.hotel_id)]
 
         print(f'Total number of rooms booked : {total_rooms_booked}')
 
         # Calculating the total numbers of rooms in a particular hotel
         total_no_rooms = [row[1] for row in db.session.query(Room.hotel_id, db.func.sum(Room.total_rooms).label('sum_t')
-        ).filter(Room.hotel_id==id).group_by(Room.hotel_id)]
+                                                             ).filter(Room.hotel_id == id).group_by(Room.hotel_id)]
 
         print(f'Total number of rooms in hotel : {total_no_rooms}')
 
         hiked = int(total_no_rooms[0]*0.8)
         print(f'80% of Total num of rooms : {hiked}')
         is_Hiked = False
-        if(len(total_rooms_booked)>0):
-            is_Hiked = total_rooms_booked[0]>=hiked
+        if (len(total_rooms_booked) > 0):
+            is_Hiked = total_rooms_booked[0] >= hiked
 
-        print(is_Hiked)      
+        print(is_Hiked)
 
         show = requested_columns(request)
         rooms_serialized = []
 
         for room in available_rooms:
-            rooms_serialized.append(room.to_dict(show=show))
+            # Write query here
+            no_of_rooms_booked_query = ''
+            room_dict = room.to_dict(show=show)
+            room_dict['available_rooms'] = room.total_rooms - \
+                no_of_rooms_booked_query
+            rooms_serialized.append(room_dict)
 
         return jsonify(dict(data=rooms_serialized, isHiked=is_Hiked))
 

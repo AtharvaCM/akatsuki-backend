@@ -303,7 +303,6 @@ class Room(Model):
     cost = db.Column(db.Integer, nullable=False)
     room_type = db.Column(db.String(50), nullable=False)
     capacity_per_room = db.Column(db.Integer, nullable=False)
-    available_rooms = db.Column(db.Integer, nullable=False)
     total_rooms = db.Column(db.Integer, nullable=False)
     features = db.Column(db.ARRAY(db.String(120)), nullable=False)
 
@@ -314,8 +313,8 @@ class Room(Model):
     def __repr__(self) -> str:
         return f'{self.room_type}'
 
-    default_fields = ['id', 'cost', 'room_type', 'capacity_per_room',
-                      'available_rooms', 'total_rooms', 'features']
+    default_fields = ['id', 'cost', 'room_type',
+                      'capacity_per_room', 'total_rooms', 'features']
 
 
 class Booking(Model):
