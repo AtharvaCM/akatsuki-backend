@@ -133,11 +133,6 @@ class RoomList(Resource):
                                                              ).filter(Room.hotel_id == id).group_by(Room.hotel_id)]
 
         print(f'Total number of rooms in hotel : {total_no_rooms}')
-    
-        vacant_room = []
-        for data in available_rooms:
-
-            print(data)
 
 
         hiked = int(total_no_rooms[0]*0.8)
@@ -153,13 +148,22 @@ class RoomList(Resource):
 
         for room in available_rooms:
             # Write query here
-            no_of_rooms_booked_query = ''
+            no_of_rooms_booked_query = db.session.query(Booking.room_id, db.func.sum(Booking.number_of_rooms).label('sum')
+                                 ).filter(Booking.check_in_date >= check_in_date
+                                          ).filter(Booking.check_out_date <= check_out_date
+                                                   ).group_by(Booking.room_id).first()
+            
+            (id,rooms,) = no_of_rooms_booked_query
+            print(no_of_rooms_booked_query, rooms, id, room.id)
             room_dict = room.to_dict(show=show)
-            room_dict['available_rooms'] = room.total_rooms - \
-                no_of_rooms_booked_query
+            if id == room.id:
+                room_dict['available_rooms'] = room.total_rooms - rooms
+            else:
+                room_dict['available_rooms'] = room.total_rooms
+                
             rooms_serialized.append(room_dict)
 
-        return jsonify(dict(data=rooms_serialized, isHiked=is_Hiked, rooms_available=vacant_room))
+        return jsonify(dict(data=rooms_serialized, isHiked=is_Hiked))
 
 
 api.add_resource(RoomList, '/<int:id>/rooms')
