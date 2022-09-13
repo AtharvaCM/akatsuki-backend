@@ -50,10 +50,9 @@ api.add_resource(LocationList, '/locations', endpoint="location_list")
 
 
 class HotelList(Resource):
-    # @swag_from('./docs/hotel/hotel_list.yaml', endpoint="hotel.hotel_list")
+    @swag_from('hotel_list.yml', endpoint="hotel.hotel_list")
     def get(self):
         # getting query params
-        """file = ./docs/hotel/hotel_list.yaml """
         location = request.args.get('location', DEFAULT_LOCATION, type=str)
         check_in_date = request.args.get(
             'check_in_date', DEFAULT_CHECK_IN_DATE, type=str)
@@ -220,3 +219,5 @@ class ReviewDetails(Resource):
 
 
 api.add_resource(ReviewDetails, '/<int:id>/reviews/check-review')
+
+

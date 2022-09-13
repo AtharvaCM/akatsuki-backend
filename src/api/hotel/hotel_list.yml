@@ -9,6 +9,7 @@ parameters:
 
 responses:
   200:
-  description: Returns a list of hotels
+    description: Returns a list of hotels
   404:
-  description: No records found
+    description: No records found
+    
