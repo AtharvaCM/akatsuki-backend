@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 from flask_restful import Api
 from flask_cors import CORS
 
@@ -35,8 +35,7 @@ def create_app(test_config=None):
     db.init_app(app)
 
     # CORS Config
-    CORS(app, resources={
-        r"/api/v1/*": {"origins": [os.environ.get("REACT_ENDPOINT"), "http://localhost:3000"]}})
+    CORS(app)
 
     #  register blueprints
     app.register_blueprint(auth)
