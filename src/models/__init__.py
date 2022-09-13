@@ -245,6 +245,7 @@ class User(Model):
     username = db.Column(db.String(30), unique=True, nullable=False)
     email = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.Text(), nullable=False)
+    avatar = db.Column(db.String(1024), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now())
     updated_at = db.Column(db.DateTime, onupdate=datetime.now())
 
@@ -279,8 +280,8 @@ class Hotel(Model):
     state = db.Column(db.String(50), nullable=False)
     country = db.Column(db.String(50), nullable=False)
     features = db.Column(db.ARRAY(db.String(50)), nullable=False)
-    room_images = db.Column(db.ARRAY(db.String(255)), nullable=False)
-    hotel_dp = db.Column(db.String(255), nullable=False)
+    room_images = db.Column(db.ARRAY(db.String(1024)), nullable=False)
+    hotel_dp = db.Column(db.String(1024), nullable=False)
 
     rooms = db.relationship('Room', backref='hotel_room')
     bookings = db.relationship('Booking', backref='hotel_booking')
@@ -303,7 +304,6 @@ class Room(Model):
     cost = db.Column(db.Integer, nullable=False)
     room_type = db.Column(db.String(50), nullable=False)
     capacity_per_room = db.Column(db.Integer, nullable=False)
-    available_rooms = db.Column(db.Integer, nullable=False)
     total_rooms = db.Column(db.Integer, nullable=False)
     features = db.Column(db.ARRAY(db.String(120)), nullable=False)
 
