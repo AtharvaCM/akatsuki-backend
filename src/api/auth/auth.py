@@ -106,12 +106,7 @@ auth = Blueprint("auth", __name__, url_prefix="/api/v1/auth")
 
 SECRET_KEY=os.environ.get("SECRET_KEY")
 
-class Ses(Resource):
-    def home():
-        if not session.get('logged_in'):
-            return 'error'
-        else:
-            return 'logged in currently'
+
 
 def token_required(f):
    @wraps(f)
@@ -166,4 +161,3 @@ class Login(Resource):
 api = Api(auth)
 api.add_resource(Login, '/login')
 api.add_resource(Register, '/register')
-api.add_resource(Ses, '/')
