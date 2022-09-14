@@ -10,7 +10,7 @@ from flasgger import swag_from
 from src.database import db
 
 # importing Model
-from src.models import Hotel, Booking, Model, Review, Room, requested_columns
+from src.models import Hotel, Booking, Review, Room, User, requested_columns
 
 # date helper
 from src.services.dateHepler import getCurrentDate, getNextDate
@@ -57,7 +57,7 @@ class HotelList(Resource):
         check_in_date = request.args.get(
             'check_in_date', DEFAULT_CHECK_IN_DATE, type=str)
         check_out_date = request.args.get(
-            'check_in_date', DEFAULT_CHECK_OUT_DATE, type=str)
+            'check_out_date', DEFAULT_CHECK_OUT_DATE, type=str)
         page = request.args.get('page', DEFAULT_PAGE, type=int)
 
         show = requested_columns(request)
@@ -201,7 +201,7 @@ class ReviewDetails(Resource):
     def get(self, id):
         try:
             # Get user_id.
-            user_id = request.json.get("user_id")
+            user_id = request.args.get("user_id")
         except Exception as why:
             # Log input strip or etc. errors.
             print("user_id is wrong. " + str(why))
@@ -212,13 +212,21 @@ class ReviewDetails(Resource):
         review = db.session.query(Review).filter(
             Review.user_id == user_id).filter(Review.hotel_id == id).first()
 
+        # get username from user_id
+        user_object = db.session.query(User.username).filter(
+            User.id == user_id).first()
+
+        if user_object is not None:
+            (username,) = user_object
+
         if review is not None:
             show = requested_columns(request)
             review_serialized = review.to_dict(show=show)
+            review_serialized['username'] = username
 
             return jsonify(dict(data=review_serialized, message="Review exists", reviewPresent=True))
         else:
-            return jsonify(dict(data={}, message="Review not found", reviewPresent=False))
+            return jsonify(dict(data=None, message="Review not found", reviewPresent=False))
 
 
 api.add_resource(ReviewDetails, '/<int:id>/reviews/check-review')
