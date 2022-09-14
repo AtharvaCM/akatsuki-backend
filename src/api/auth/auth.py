@@ -112,11 +112,11 @@ def token_required(f):
    @wraps(f)
    def decorator(*args, **kwargs):
        token = None
-       if 'x-access-tokens' in request.headers:
-           token = request.headers['x-access-tokens']
+       if 'x-access-token' in request.headers:
+           token = request.headers['x-access-token']
  
        if not token:
-           return jsonify({'message': 'a valid token is missing'})
+           return jsonify({'message': 'a valid token is missing in header'})
        try:
            data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
            current_user = User.query.filter_by(id=data['id']).first()
@@ -145,12 +145,10 @@ class Login(Resource):
         auth = request.json
 
         if not auth and not auth.get("username") or not auth.get("password") : 
-            return jsonify({'Authentication': 'login required','is_authenticate': False,'token' : None})   
+            return jsonify({'Authentication': 'login requireddddd','is_authenticate': False,'token' : None})   
         user = User.query.filter_by(username=auth.get("username")).first()  
-        print(user.password)
-        print(auth.get("password"))
-        # if user.password == auth.get("password"):
-        if check_password_hash(user.password, auth.get("password")):
+        if user.password == auth.get("password"):
+        # if check_password_hash(user.password, auth.get("password")):
             session['logged_in'] = True
             token = jwt.encode({'id' : user.id}, SECRET_KEY, "HS256")
         
