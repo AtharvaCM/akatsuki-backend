@@ -13,14 +13,11 @@ responses:
   404:
     description: No records found
   
-  // login yml file for swagger ?
-parameters:
-  - in: "body"
-    name: "body"
-    description: "Pet object that needs to be added to the store"
-    required: true
-    schema:
-      $ref: "#/definitions/Pet"
+ 
+
+
+
+
 
 
 
