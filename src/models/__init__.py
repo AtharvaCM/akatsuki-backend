@@ -371,7 +371,7 @@ class Review(Model):
     default_fields = ['id', 'review_date', 'rating', 'comment']
 
 class Usercitysearch(Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     city = db.Column(db.String(50), nullable=False)
     search_count = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
