@@ -1,7 +1,8 @@
 # booking blueprint
 # All booking related API will be maintained here
 
-import json
+from http.client import HTTPException
+import flask_restful
 from flask import Blueprint, jsonify
 from flask_restful import Api, Resource
 from datetime import date, datetime
@@ -10,8 +11,11 @@ from flask_restful import Resource, Api, reqparse
 from src.database import db
 from flask import request
 from src.models import Hotel, Booking, requested_columns
+from werkzeug.exceptions import HTTPException
+ 
 
 Booking = Blueprint('Booking', __name__, url_prefix='/api/v1/booking')
+#Booking.register_error_handler(HTTPException, lambda e: (str(e), e.code))
 
 class Booking(Resource):
     def get(self):
@@ -77,6 +81,7 @@ class BookingConfirm(Resource):
         show = requested_columns(request)
         Booking_serialized = new_Booking.to_dict(show=show)
         return jsonify(dict(data=Booking_serialized))
-    
+    def handle_exception(e):
+        return e.get_response()
 api = Api(Booking)
 api.add_resource(BookingConfirm , '/')
