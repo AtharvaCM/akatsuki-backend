@@ -251,6 +251,7 @@ class User(Model):
 
     bookings = db.relationship('Booking', backref='user_booking')
     reviews = db.relationship('Review', backref='user_review')
+    recommendation = db.relationship('Usercitysearch', backref='user_recommed')
 
     def __repr__(self) -> str:
         return f'{self.username}'
@@ -368,3 +369,14 @@ class Review(Model):
         return f'{self.comment}'
 
     default_fields = ['id', 'review_date', 'rating', 'comment']
+
+class Usercitysearch(Model):
+    id = db.Column(db.Integer, primary_key=True)
+    city = db.Column(db.String(50), nullable=False)
+    search_count = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    db.UniqueConstraint(city,user_id)
+    def __repr__(self) -> str:
+        return f'{self.city}'
+
+    default_fields = ['user_id', 'city','search_count']
