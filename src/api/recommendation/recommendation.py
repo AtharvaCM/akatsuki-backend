@@ -41,27 +41,20 @@ class CityRecommendList(Resource):
         # check if city already exists based on search
         citysearch = Usercitysearch.query.filter(db.and_(Usercitysearch.user_id == id, 
                     Usercitysearch.city == city)).first()
-
+        
         if citysearch is not None:
-            Usercitysearch.search_count = Usercitysearch.search_count +1
-            query = [r[1] for r in db.session.query(Usercitysearch.city,Usercitysearch.search_count
-            ).filter(db.and_(Usercitysearch.user_id == id, Usercitysearch.city == city)).first()]
-
-            count = query[0]+1 
-            '''
-            cityrecordupdate = db.session.query(Usercitysearch
-            ).filter(db.and_(Usercitysearch.user_id == id, Usercitysearch.city == city)).update({"search_count" : (Usercitysearch.search_count +1)})
-            '''
-            db.session.add(cityrecordupdate)
+            count = citysearch.search_count +1
+            print(count)
+            setattr(citysearch, 'search_count', count)
+            #db.session.add(cityrecordupdate)
             db.session.commit()
-            #return errors.ALREADY_EXIST
+            return jsonify(dict(status="City record updated successfully"))
         else:
             # Create new record for that city
             cityrecord = Usercitysearch(city=city, search_count=1,user_id=id)
             db.session.add(cityrecord)
             db.session.commit()
-
-        return jsonify(dict(status="City record added successfully"))
+            return jsonify(dict(status="City record added successfully"))
 
 
 api.add_resource(CityRecommendList, '/locations/<int:id>')
