@@ -58,10 +58,10 @@ class Bookings(Resource):
         if user_id is None or room_type is None or check_in_date is None or check_out_date is None or amount is None or number_of_rooms is None or hotel_id is None or room_id is None:
             return errors.INVALID_INPUT_422
 
-        # generate a booking code
+        # generate a pseudo random booking code
         rand_int = datetime.now().time()
-        print(rand_int)
-        booking_code = 'bcode1'
+        booking_code = 'FD_' + str(user_id) + str(rand_int.microsecond)
+        print('booking_code: ', booking_code)
 
         # static fields
         payment = 'Credit Card'
@@ -82,7 +82,7 @@ class Bookings(Resource):
         db.session.add(new_Booking)
         db.session.commit()
 
-        return jsonify(dict(status="Booking successful"))
+        return jsonify(dict(status="Booking successful", booking_code=booking_code))
 
 
 api.add_resource(Bookings, '/')
