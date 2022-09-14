@@ -245,6 +245,7 @@ class User(Model):
     username = db.Column(db.String(30), unique=True, nullable=False)
     email = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.Text(), nullable=False)
+    avatar = db.Column(db.String(1024), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now())
     updated_at = db.Column(db.DateTime, onupdate=datetime.now())
 
@@ -279,8 +280,8 @@ class Hotel(Model):
     state = db.Column(db.String(50), nullable=False)
     country = db.Column(db.String(50), nullable=False)
     features = db.Column(db.ARRAY(db.String(50)), nullable=False)
-    room_images = db.Column(db.ARRAY(db.String(255)), nullable=False)
-    hotel_dp = db.Column(db.String(255), nullable=False)
+    room_images = db.Column(db.ARRAY(db.String(1024)), nullable=False)
+    hotel_dp = db.Column(db.String(1024), nullable=False)
 
     rooms = db.relationship('Room', backref='hotel_room')
     bookings = db.relationship('Booking', backref='hotel_booking')
@@ -303,7 +304,6 @@ class Room(Model):
     cost = db.Column(db.Integer, nullable=False)
     room_type = db.Column(db.String(50), nullable=False)
     capacity_per_room = db.Column(db.Integer, nullable=False)
-    available_rooms = db.Column(db.Integer, nullable=False)
     total_rooms = db.Column(db.Integer, nullable=False)
     features = db.Column(db.ARRAY(db.String(120)), nullable=False)
 
@@ -314,8 +314,8 @@ class Room(Model):
     def __repr__(self) -> str:
         return f'{self.room_type}'
 
-    default_fields = ['id', 'cost', 'room_type', 'capacity_per_room',
-                      'available_rooms', 'total_rooms', 'features']
+    default_fields = ['id', 'cost', 'room_type',
+                      'capacity_per_room', 'total_rooms', 'features']
 
 
 class Booking(Model):
@@ -356,7 +356,8 @@ class Extrafeature(Model):
 
 class Review(Model):
     id = db.Column(db.Integer, primary_key=True)
-    review_date = db.Column(db.Integer, nullable=False)
+    review_date = db.Column(
+        db.DateTime(), nullable=False, default=datetime.today())
     rating = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.String(255), nullable=False)
 
