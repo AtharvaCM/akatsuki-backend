@@ -11,7 +11,7 @@ from sqlalchemy.sql import func
 from src.database import db
 
 # importing Model
-from src.models import Hotel, Booking, Model, Review, Room, requested_columns
+from src.models import Hotel, Booking, Review, Room, User, requested_columns
 
 # date helper
 from src.services.dateHepler import getCurrentDate, getNextDate
@@ -58,7 +58,7 @@ class HotelList(Resource):
         check_in_date = request.args.get(
             'check_in_date', DEFAULT_CHECK_IN_DATE, type=str)
         check_out_date = request.args.get(
-            'check_in_date', DEFAULT_CHECK_OUT_DATE, type=str)
+            'check_out_date', DEFAULT_CHECK_OUT_DATE, type=str)
         page = request.args.get('page', DEFAULT_PAGE, type=int)
 
         show = requested_columns(request)
@@ -114,8 +114,8 @@ class RoomList(Resource):
         check_in_date = request.args.get(
             'check_in_date', DEFAULT_CHECK_IN_DATE, type=str)
         check_out_date = request.args.get(
-            'check_in_date', DEFAULT_CHECK_OUT_DATE, type=str)
-        
+            'check_out_date', DEFAULT_CHECK_OUT_DATE, type=str)
+    
         # Calculating the sum of room booked for a particular room type of a hotel w.r.t check-in and check-out date
         query = db.session.query(Booking.room_id, db.func.sum(Booking.number_of_rooms).label('sum_b')
                                  ).filter(Booking.check_in_date >= check_in_date
@@ -129,49 +129,47 @@ class RoomList(Resource):
 
         # Getting the list of Rooms which are available for the selected hotel
         available_rooms = db.session.query(Room
-                                            ).filter(Room.id.not_in(subquery2)
-	                                                ).filter(Room.hotel_id == id).all()
+                                           ).filter(Room.id.not_in(subquery2)
+                                                    ).filter(Room.hotel_id == id).all()
 
-        
         # Calculating the total numbers of rooms booked for a particular hotel w.r.t check-in and check-out date
         total_rooms_booked = [r[1] for r in db.session.query(Booking.hotel_id, db.func.sum(Booking.number_of_rooms).label('sum_r')
                                                              ).filter(Booking.check_in_date >= check_in_date
                                                                       ).filter(Booking.check_out_date <= check_out_date
                                                                                ).filter(Booking.hotel_id == id).group_by(Booking.hotel_id)]
 
-        
         # Calculating the total numbers of rooms in a particular hotel
         total_no_rooms = [row[1] for row in db.session.query(Room.hotel_id, db.func.sum(Room.total_rooms).label('sum_t')
                                                              ).filter(Room.hotel_id == id).group_by(Room.hotel_id)]
 
+        # Calculating 80% of total no of rooms
+        hiked = int(total_no_rooms[0]*0.8)
 
-        hiked = int(total_no_rooms[0]*0.8) #Calculating 80% of total no of rooms
-    
         is_Hiked = False
-        #Checking if more than *80% rooms are booked or not
+        # Checking if more than *80% rooms are booked or not
         if (len(total_rooms_booked) > 0):
             is_Hiked = total_rooms_booked[0] >= hiked
-
 
         show = requested_columns(request)
         rooms_serialized = []
 
         # Getting the Sum of Rooms booked for that Room ID
         no_of_rooms_booked_query = db.session.query(Booking.room_id, db.func.sum(Booking.number_of_rooms).label('sum')
-                                                        ).filter(Booking.check_in_date >= check_in_date
-                                                                 ).filter(Booking.check_out_date <= check_out_date 
-                                                                          ).group_by(Booking.room_id).all()
+                                                    ).filter(Booking.check_in_date >= check_in_date
+                                                             ).filter(Booking.check_out_date <= check_out_date
+                                                                      ).group_by(Booking.room_id).all()
 
         # This will return the list of rooms with available rooms attribute
         for room in available_rooms:
             room_dict = room.to_dict(show=show)
             room_dict['available_rooms'] = room.total_rooms
             for bookedRoom in no_of_rooms_booked_query:
-                if(room.id == bookedRoom.room_id):
-                    room_dict['available_rooms'] = room.total_rooms - bookedRoom.sum
-    
+                if (room.id == bookedRoom.room_id):
+                    room_dict['available_rooms'] = room.total_rooms - \
+                        bookedRoom.sum
+
             rooms_serialized.append(room_dict)
-            
+
         return jsonify(dict(data=rooms_serialized, isHiked=is_Hiked))
 
 
@@ -210,7 +208,15 @@ class ReviewList(Resource):
         reviews_serialized = []
 
         for review in reviews:
-            reviews_serialized.append(review.to_dict(show=show))
+            # fetch username for each review
+            username_query = db.session.query(User.username).filter(
+                User.id == review.user_id).first()
+            if username_query is not None:
+                (username,) = username_query
+
+            review_dict = review.to_dict(show=show)
+            review_dict['username'] = username
+            reviews_serialized.append(review_dict)
 
         return jsonify(dict(data=reviews_serialized))
 
@@ -259,7 +265,7 @@ class ReviewDetails(Resource):
     def get(self, id):
         try:
             # Get user_id.
-            user_id = request.json.get("user_id")
+            user_id = request.args.get("user_id")
         except Exception as why:
             # Log input strip or etc. errors.
             print("user_id is wrong. " + str(why))
@@ -270,13 +276,21 @@ class ReviewDetails(Resource):
         review = db.session.query(Review).filter(
             Review.user_id == user_id).filter(Review.hotel_id == id).first()
 
+        # get username from user_id
+        user_object = db.session.query(User.username).filter(
+            User.id == user_id).first()
+
+        if user_object is not None:
+            (username,) = user_object
+
         if review is not None:
             show = requested_columns(request)
             review_serialized = review.to_dict(show=show)
+            review_serialized['username'] = username
 
             return jsonify(dict(data=review_serialized, message="Review exists", reviewPresent=True))
         else:
-            return jsonify(dict(data={}, message="Review not found", reviewPresent=False))
+            return jsonify(dict(data=None, message="Review not found", reviewPresent=False))
 
 
 api.add_resource(ReviewDetails, '/<int:id>/reviews/check-review')
