@@ -95,6 +95,7 @@ from werkzeug.security import generate_password_hash,check_password_hash
 from functools import wraps
 from flask_restful import Resource, Api, abort, reqparse
 from datetime import datetime
+from flasgger.utils import swag_from
 
 from src.database import db 
 from src.models import User
@@ -140,6 +141,7 @@ class Register(Resource):
 
 
 class Login(Resource):
+    @swag_from('/src/docs/auth/login.yml')
     def post(self):
         
         auth = request.json

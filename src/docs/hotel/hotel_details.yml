@@ -1,0 +1,30 @@
+  returns details of a particular hotel
+---
+tags:
+  - Hotel details
+parameters:
+  - in: path
+    name: hotel_details
+    required: true
+
+responses:
+  200:
+    description: returns details of a particular hotel
+  404:
+    description: No records found
+  
+  // login yml file for swagger ?
+parameters:
+  - in: "body"
+    name: "body"
+    description: "Pet object that needs to be added to the store"
+    required: true
+    schema:
+      $ref: "#/definitions/Pet"
+
+
+
+
+
+
+

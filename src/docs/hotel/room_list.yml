@@ -1,0 +1,15 @@
+  returns Roomlist of a particular hotel
+---
+tags:
+  - Room List
+parameters:
+  - in: path
+    name: room_list
+    required: true
+
+responses:
+  200:
+    description: returns Roomlist of a particular hotel
+  404:
+    description: No records found
+    

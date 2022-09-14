@@ -1,0 +1,15 @@
+  returns details of review for a particular hotel 
+---
+tags:
+  - Review Details
+parameters:
+  - in: path
+    name: extra_feature
+    required: true
+
+responses:
+  200:
+    description: returns review  for a particular hotel
+  404:
+    description: No records found
+    

@@ -19,9 +19,9 @@ from src.services.dateHepler import getCurrentDate, getNextDate
 from src.api.error import errors
 
 # default values
-DEFAULT_LOCATION = 'Kovalam'
-DEFAULT_CHECK_IN_DATE = getCurrentDate("%m/%d/%y")
-DEFAULT_CHECK_OUT_DATE = getNextDate("%m/%d/%y")
+DEFAULT_LOCATION = 'Goa'
+DEFAULT_CHECK_IN_DATE ='2022-9-22' #getCurrentDate("%m/%d/%y")
+DEFAULT_CHECK_OUT_DATE ='2022-9-25' #getCurrentDategetNextDate("%m/%d/%y")
 DEFAULT_PAGE = 1
 
 hotel = Blueprint("hotel", __name__, url_prefix="/api/v1/hotels")
@@ -32,6 +32,7 @@ parser = reqparse.RequestParser()
 
 # GET - returns a list of all distinct locations from the Hotel table
 class LocationList(Resource):
+    @swag_from('/src/docs/hotel/location_list.yml', endpoint="hotel.location_list")
     def get(self):
         locations = db.session.query(Hotel.city).distinct().all()
         print(locations)
@@ -50,7 +51,7 @@ api.add_resource(LocationList, '/locations', endpoint="location_list")
 
 
 class HotelList(Resource):
-    @swag_from('hotel_list.yml', endpoint="hotel.hotel_list")
+    @swag_from('/src/docs/hotel/hotel_list.yml', endpoint="hotel.hotel_list")
     def get(self):
         # getting query params
         location = request.args.get('location', DEFAULT_LOCATION, type=str)
@@ -92,7 +93,9 @@ api.add_resource(HotelList, '/', endpoint="hotel_list")
 
 # GET - returns details of a particular hotel
 class HotelDetails(Resource):
+    @swag_from('/src/docs/hotel/hotel_details.yml')
     def get(self, id):
+    
         hotel = Hotel.query.filter_by(id=id).first()
 
         show = requested_columns(request)
@@ -103,8 +106,9 @@ class HotelDetails(Resource):
 
 api.add_resource(HotelDetails, '/<int:id>')
 
-
+# GET - returns Roomlist of a particular hotel
 class RoomList(Resource):
+    @swag_from('/src/docs/hotel/room_list.yml')
     def get(self, id):
         rooms = db.session.query(Room).filter(Room.hotel_id == id).all()
 
@@ -123,6 +127,7 @@ api.add_resource(RoomList, '/<int:id>/rooms')
 
 
 class ExtrafeaturesList(Resource):
+    @swag_from('/src/docs/hotel/extra_feature.yml')
     def get(self, id):
         # the hotel for which we want to get the extra features
         hotel = Hotel.query.filter_by(id=id).first()
@@ -143,6 +148,7 @@ api.add_resource(ExtrafeaturesList,  '/<int:id>/extrafeatures')
 # GET - returns list of reviews for a given hotel
 # POST - adds a review if it does not already exist
 class ReviewList(Resource):
+    @swag_from('/src/docs/hotel/review_list_get.yml')
     def get(self, id):
         # the hotel for which we want to get all reviews
         hotel = Hotel.query.filter_by(id=id).first()
@@ -155,7 +161,7 @@ class ReviewList(Resource):
             reviews_serialized.append(review.to_dict(show=show))
 
         return jsonify(dict(data=reviews_serialized))
-
+    @swag_from('/src/docs/hotel/review_list_post.yml')
     def post(self, id):
         # write the timestamp
         review_date = datetime.now()
@@ -198,6 +204,7 @@ api.add_resource(ReviewList, '/<int:id>/reviews')
 
 
 class ReviewDetails(Resource):
+    @swag_from('/src/docs/hotel/review_details.yml')
     def get(self, id):
         try:
             # Get user_id.

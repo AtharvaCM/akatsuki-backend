@@ -1,0 +1,15 @@
+  returns a list of all distinct locations from the Hotel table
+---
+tags:
+  - Location List
+parameters:
+  - in: path
+    name: location_list
+    required: true
+
+responses:
+  200:
+    description: returns a list of all distinct locations
+  404:
+    description: No records found
+    
