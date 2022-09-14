@@ -1,87 +1,72 @@
 # booking blueprint
 # All booking related API will be maintained here
 
-from http.client import HTTPException
-import flask_restful
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from flask_restful import Api, Resource
-from datetime import date, datetime
-from src.services.dateHepler import getCurrentDate, getNextDate
-from flask_restful import Resource, Api, reqparse
+
+from datetime import datetime
+
 from src.database import db
-from flask import request
-from src.models import Hotel, Booking, requested_columns
-from werkzeug.exceptions import HTTPException
- 
+from src.api.error import errors
+from src.models import Booking
 
-Booking = Blueprint('Booking', __name__, url_prefix='/api/v1/booking')
-#Booking.register_error_handler(HTTPException, lambda e: (str(e), e.code))
 
-class Booking(Resource):
-    def get(self):
-        return 'Booking'
-    
-'''
-DEFAULT_BOOKING_CODE = 102
-DEFAULT_USER_ID = 11
-DEFAULT_BOOKING_DATE = 21/2/2020
-DEFAULT_TOTAL_AMOUNT = 20000
-DEFAULT_PAYMENT_METHOD = "CREDIT_CARD"
-DEFAULT_DATES = 15/3/2020 - 20/3/2020
-DEFAULT_TRAVELERS = 2
-DEFAULT_NO_OF_ROOMS = 1
-DEFAULT_CHECK_IN_DATE = getCurrentDate("%m/%d/%y")
-DEFAULT_CHECK_OUT_DATE = getNextDate("%m/%d/%y")
-DEFAULT_ROOM_TYPE = "deluxe"
-'''
+booking = Blueprint('booking', __name__, url_prefix='/api/v1/bookings')
+api = Api(booking)
 
-hotel_post_args = reqparse.RequestParser()
 
-'''
-hotel_post_args.add_argument('booking_code', type=int, required=True)
-hotel_post_args.add_argument('booking_date', type=date, required=True)
-hotel_post_args.add_argument('total_amount', type=int, required=True)
-hotel_post_args.add_argument('payment_method', type=str, required=True)
-hotel_post_args.add_argument('dates', type=date, required=True)
-hotel_post_args.add_argument('travelers', type=int, required=True)
-hotel_post_args.add_argument('no_of_rooms', type=str)
-hotel_post_args.add_argument('user_id', type=int, required=True)
-hotel_post_args.add_argument('check_in_date', type=date, required=True)
-hotel_post_args.add_argument('check_out_date', type=date, required=True)
-hotel_post_args.add_argument('room_type', type=str, required=True)
-'''
-'''
-{
-"user_id" : 11,
-"booking_code": 101,
-"booking_date" : "21/2/2020",
-"amount" : 20000,
-"payment" : "CREDIT_CARD",
-"travelers" : 2,
-"number_of_rooms" : 1,
-"check_in_date" : "15/3/2020",
-"check_out_date" : "21/3/2020",
-"room_type" : "deluxe"
-}'''
-
-class BookingConfirm(Resource):
+class Bookings(Resource):
     def post(self):
-        new_Booking = Booking(user_id = request.json.get('user_id', type=int), 
-                              booking_code =  request.json.get('booking_code', type= int),
-                              booking_date =  request.json.get('booking_date', type=datetime),
-                              amount =  request.json.get('amount', type=int),
-                              payment = request.json.get('payment', type=str),
-                              travelers = request.json.get('travelers', type= int),
-                              number_of_rooms = request.json.get('number_of_rooms', type= int),
-                              check_in_date = request.json.get('check_in_date', type=datetime),
-                              check_out_date = request.json.get('check_out_date', type=datetime),
-                              room_type = request.json.get('room_type', type=str))
+        # Write the timestamp
+        booking_date = datetime.now()
+
+        # get params from request body
+        try:
+            user_id, room_type, check_in_date, check_out_date, amount, number_of_rooms, hotel_id, room_id = (
+                request.json.get('user_id'),
+                request.json.get('room_type').strip(),
+                request.json.get('check_in_date').strip(),
+                request.json.get('check_out_date').strip(),
+                request.json.get('amount'),
+                request.json.get('number_of_rooms'),
+                request.json.get('hotel_id'),
+                request.json.get('room_id'),
+            )
+        except Exception as why:
+            # Log input strip or etc. errors.
+            print("input is wrong. " + str(why))
+            # Return invalid input error.
+            return errors.INVALID_INPUT_422
+
+        # check if any field is None
+        if user_id is None or room_type is None or check_in_date is None or check_out_date is None or amount is None or number_of_rooms is None or hotel_id is None or room_id is None:
+            return errors.INVALID_INPUT_422
+
+        # generate a booking code
+        rand_int = datetime.now().time()
+        print(rand_int)
+        booking_code = 'bcode1'
+
+        # static fields
+        payment = 'Credit Card'
+        travelers = 1
+
+        # create a new booking
+        try:
+            new_Booking = Booking(booking_code=booking_code, room_type=room_type,
+                                  check_in_date=check_in_date, check_out_date=check_out_date,
+                                  amount=amount, payment=payment, number_of_rooms=number_of_rooms,
+                                  booking_date=booking_date, travelers=travelers, user_id=user_id,
+                                  hotel_id=hotel_id, room_id=room_id)
+        except Exception as why:
+            # Log input strip or etc. errors.
+            print("something is wrong. " + str(why))
+            return errors.SERVER_ERROR_500
+
         db.session.add(new_Booking)
         db.session.commit()
-        show = requested_columns(request)
-        Booking_serialized = new_Booking.to_dict(show=show)
-        return jsonify(dict(data=Booking_serialized))
-    def handle_exception(e):
-        return e.get_response()
-api = Api(Booking)
-api.add_resource(BookingConfirm , '/')
+
+        return jsonify(dict(status="Booking successful"))
+
+
+api.add_resource(Bookings, '/')

@@ -6,6 +6,7 @@ from sqlalchemy import not_
 # DB
 from src.database import db
 
+
 class Model(db.Model):
     __abstract__ = True
 
@@ -326,7 +327,7 @@ class Booking(Model):
     payment = db.Column(db.String(120), nullable=False)
     number_of_rooms = db.Column(db.Integer, nullable=False)
     booking_date = db.Column(db.DateTime, default=datetime.now())
-    travelers = db.Column(db.Integer, nullable=False)
+    travelers = db.Column(db.Integer, nullable=False, default=1)
     #created_on = db.Column(db.DateTime(), default=datetime.now())
     #updated_on = db.Column(db.DateTime(), default=datetime.now())
 
