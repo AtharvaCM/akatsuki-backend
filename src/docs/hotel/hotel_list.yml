@@ -1,15 +1,25 @@
   Returns a list of hotels for the given location
 ---
 tags:
-  - Hotels
+  - Hotel List
 parameters:
   - in: path
     name: hotel_list
     required: true
+    schema:
+      type: object
+      required:
+        - "city"
+      properties:
+        city:
+          type: "string"
+          example: "Pune"
 
 responses:
   200:
     description: Returns a list of hotels
   404:
     description: No records found
-    
+
+
+
