@@ -328,8 +328,8 @@ class Booking(Model):
     number_of_rooms = db.Column(db.Integer, nullable=False)
     booking_date = db.Column(db.DateTime, default=datetime.now())
     travelers = db.Column(db.Integer, nullable=False, default=1)
-    #created_on = db.Column(db.DateTime(), default=datetime.now())
-    #updated_on = db.Column(db.DateTime(), default=datetime.now())
+    created_on = db.Column(db.DateTime(), default=datetime.now())
+    updated_on = db.Column(db.DateTime(), default=datetime.now())
 
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     hotel_id = db.Column(db.Integer, db.ForeignKey('hotel.id'), nullable=False)
@@ -340,7 +340,7 @@ class Booking(Model):
 
     default_fields = ['booking_code', 'room_type', 'check_in_date',
                       'check_out_date', 'amount', 'payment', 'number_of_rooms',
-                      'booking_date', 'travelers', 'user_id']
+                      'booking_date', 'travelers', 'created_on', 'updated_on']
 
 
 class Extrafeature(Model):
