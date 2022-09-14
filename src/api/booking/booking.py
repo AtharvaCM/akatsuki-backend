@@ -16,6 +16,22 @@ api = Api(booking)
 
 
 class Bookings(Resource):
+    """
+    Author: AtharvaCM
+    POST:
+        desc:
+            adds a booking record in the DB
+        body:
+            - user_id
+            - room_type
+            - check_in_date
+            - check_out_date
+            - amount
+            - numer_of_rooms
+            - hotel_id
+            - room_id
+    """
+
     def post(self):
         # Write the timestamp
         booking_date = datetime.now()
