@@ -114,8 +114,8 @@ class RoomList(Resource):
         check_in_date = request.args.get(
             'check_in_date', DEFAULT_CHECK_IN_DATE, type=str)
         check_out_date = request.args.get(
-            'check_in_date', DEFAULT_CHECK_OUT_DATE, type=str)
-
+            'check_out_date', DEFAULT_CHECK_OUT_DATE, type=str)
+    
         # Calculating the sum of room booked for a particular room type of a hotel w.r.t check-in and check-out date
         query = db.session.query(Booking.room_id, db.func.sum(Booking.number_of_rooms).label('sum_b')
                                  ).filter(Booking.check_in_date >= check_in_date
