@@ -239,6 +239,14 @@ hotel_extra_feature = db.Table(
         'extrafeature.id'), primary_key=True),
 )
 
+user_hotel_search = db.Table(
+    'user_hotel_search',
+    db.Column('hotel', db.Integer, db.ForeignKey(
+        'hotel.id'), primary_key=True),
+    db.Column('user', db.Integer, db.ForeignKey(
+        'user.id'), primary_key=True ),
+    db.Column('search_count', db.Integer, nullable=False)   
+)
 
 class User(Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -293,6 +301,9 @@ class Hotel(Model):
     extra_features = db.relationship(
         'Extrafeature', secondary=hotel_extra_feature, lazy='subquery', backref=db.backref('hotels', lazy=True))
 
+    hotel_search = db.relationship(
+        'User', secondary=user_hotel_search, lazy='subquery', backref=db.backref('hotels', lazy=True))
+        
     def __repr__(self) -> str:
         return f'{self.name}'
 
@@ -380,3 +391,5 @@ class Usercitysearch(Model):
         return f'{self.city}'
 
     default_fields = ['user_id', 'city','search_count']
+
+
