@@ -295,7 +295,7 @@ class Hotel(Model):
     extra_features = db.relationship(
         'Extrafeature', secondary=hotel_extra_feature, lazy='subquery', backref=db.backref('hotels', lazy=True))
 
-    users = db.relationship("Userhotelsearch", back_populates="hotels")
+    users = db.relationship("Userhotelsearch", back_populates="hotel")
 
     def __repr__(self) -> str:
         return f'{self.name}'
