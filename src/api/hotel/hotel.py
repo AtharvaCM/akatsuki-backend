@@ -1,17 +1,14 @@
 # Hotel blueprint
 # All hotel related API will be maintained here
-from datetime import datetime
-import json
-from operator import itemgetter
 from flask import Blueprint, jsonify, request
 from flask_restful import Resource, Api, reqparse
-
 from flasgger import swag_from
-from sqlalchemy.sql import func
 
+from operator import itemgetter
+from datetime import datetime
+
+# importing Model and db
 from src.database import db
-
-# importing Model
 from src.models import Hotel, Booking, Review, Room, User, requested_columns
 
 # date helper
@@ -19,6 +16,9 @@ from src.services.dateHepler import getCurrentDate, getNextDate
 
 # error codes
 from src.api.error import errors
+
+# auth token decorator
+from src.api.auth.auth import token_required
 
 # default values
 DEFAULT_LOCATION = 'Kovalam'
@@ -59,7 +59,7 @@ api.add_resource(LocationList, '/locations', endpoint="location_list")
 
 class HotelList(Resource):
     # @swag_from('./docs/hotel/hotel_list.yaml', endpoint="hotel.hotel_list")
-    def get(self):
+    def get(self, token):
         # getting query params
         location = request.args.get('location', DEFAULT_LOCATION, type=str)
         check_in_date = request.args.get(
@@ -335,7 +335,8 @@ class ReviewList(Resource):
 
         return jsonify(dict(data=reviews_serialized))
 
-    def post(self, id):
+    @token_required
+    def post(self, id, token):
         # write the timestamp
         review_date = datetime.now()
 
