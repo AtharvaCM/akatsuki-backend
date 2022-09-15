@@ -24,7 +24,7 @@ class CityRecommendList(Resource):
 
         city = db.session.query(Usercitysearch
                                 ).filter(Usercitysearch.search_count >=5
-                                         ).filter(Usercitysearch.user_id == id).all()
+                                         ).filter(Usercitysearch.user_id == id).limit(4).all()
 
         show = requested_columns(request)
         city_serialized = []
@@ -61,7 +61,7 @@ class HotelRecommendList(Resource):
     
         hotels = db.session.query(Userhotelsearch
                                   ).filter(Userhotelsearch.search_count >=5
-                                         ).filter(Userhotelsearch.user_id == id).all()
+                                         ).filter(Userhotelsearch.user_id == id).limit(4).all()
 
         show = requested_columns(request)
         hotel_serialized = []
