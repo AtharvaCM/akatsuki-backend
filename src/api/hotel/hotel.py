@@ -39,7 +39,7 @@ class LocationList(Resource):
         desc:
             returns a list of all distinct locations from the Hotel table
     """
-
+    @swag_from('/src/docs/hotel/location_list.yml', endpoint="hotel.location_list")
     def get(self):
         locations = db.session.query(Hotel.city).distinct().all()
         print(locations)
@@ -58,7 +58,7 @@ api.add_resource(LocationList, '/locations', endpoint="location_list")
 
 
 class HotelList(Resource):
-    # @swag_from('./docs/hotel/hotel_list.yaml', endpoint="hotel.hotel_list")
+    @swag_from('/src/docs/hotel/hotel_list.yml', endpoint="hotel.hotel_list")
     def get(self, token):
         # getting query params
         location = request.args.get('location', DEFAULT_LOCATION, type=str)
@@ -130,7 +130,7 @@ class RoomList(Resource):
         params:
             - id
     """
-
+    @swag_from('/src/docs/hotel/room_list.yml')
     def get(self, id):
         check_in_date = request.args.get(
             'check_in_date', DEFAULT_CHECK_IN_DATE, type=str)
@@ -278,7 +278,7 @@ class ExtrafeaturesList(Resource):
         params:
             - id
     """
-
+    @swag_from('/src/docs/hotel/extra_feature.yml')
     def get(self, id):
         # the hotel for which we want to get the extra features
         hotel = Hotel.query.filter_by(id=id).first()
@@ -315,7 +315,7 @@ class ReviewList(Resource):
         params:
             - id
     """
-
+    @swag_from('/src/docs/hotel/review_list_get.yml')
     def get(self, id):
         # the hotel for which we want to get all reviews
         hotel = Hotel.query.filter_by(id=id).first()
@@ -338,6 +338,7 @@ class ReviewList(Resource):
         return jsonify(dict(data=reviews_serialized))
 
     @token_required
+    @swag_from('/src/docs/hotel/review_list_post.yml')
     def post(self, id, token):
         # write the timestamp
         review_date = datetime.now()
@@ -390,7 +391,7 @@ class ReviewDetails(Resource):
         params:
             - id
     """
-
+    @swag_from('/src/docs/hotel/review_details.yml')
     def get(self, id):
         try:
             # Get user_id.
