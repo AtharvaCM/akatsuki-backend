@@ -95,71 +95,106 @@ from werkzeug.security import generate_password_hash,check_password_hash
 from functools import wraps
 from flask_restful import Resource, Api, abort, reqparse
 from datetime import datetime
-from flasgger.utils import swag_from
-
-from src.database import db 
-from src.models import User
-import uuid
 import jwt
 import os
+from flasgger.utils import swag_from
+
+from src.api.error import errors
+from src.database import db
+from src.models import User
 
 auth = Blueprint("auth", __name__, url_prefix="/api/v1/auth")
 
-SECRET_KEY=os.environ.get("SECRET_KEY")
-
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 
 def token_required(f):
-   @wraps(f)
-   def decorator(*args, **kwargs):
-       token = None
-       if 'x-access-tokens' in request.headers:
-           token = request.headers['x-access-tokens']
- 
-       if not token:
-           return jsonify({'message': 'a valid token is missing'})
-       try:
-           data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-           current_user = User.query.filter_by(id=data['id']).first()
-       except:
-           return jsonify({'message': 'token is invalid'})
- 
-       return f(current_user, *args, **kwargs)
-   return decorator
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        token = None
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+
+        if not token:
+            return jsonify({'message': 'a valid token is missing in header'})
+        try:
+            data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            current_user = User.query.filter_by(id=data['id']).first()
+        except:
+            return jsonify({'message': 'token is invalid'})
+
+        return f(current_user, *args, **kwargs)
+    return decorator
+
 
 class Register(Resource):
-    def post(self): 
+    def post(self):
         data = request.json
-        hashed_password = generate_password_hash(data.get('password'), method='sha256')
-        
-        new_user = User(id=data.get('id'), name=data.get('name'), username=data.get('username'),email=data.get('email'), password=hashed_password,avatar = data.get('avatar'), created_at=datetime.now(), updated_at=datetime.now())
+        hashed_password = generate_password_hash(
+            data.get('password'), method='sha256')
 
-        db.session.add(new_user) 
-        db.session.commit()   
+        new_user = User(id=data.get('id'), name=data.get('name'), username=data.get('username'), email=data.get(
+            'email'), password=hashed_password, avatar=data.get('avatar'), created_at=datetime.now(), updated_at=datetime.now())
+
+        db.session.add(new_user)
+        db.session.commit()
         return jsonify({'message': 'registered successfully'})
-
 
 
 class Login(Resource):
     @swag_from('/src/docs/auth/login.yml')
     def post(self):
-        
+
         auth = request.json
 
-        if not auth and not auth.get("username") or not auth.get("password") : 
-            return jsonify({'Authentication': 'login required','is_authenticate': False,'token' : None})   
-        user = User.query.filter_by(username=auth.get("username")).first()  
-        print(user.password)
-        print(auth.get("password"))
-        # if user.password == auth.get("password"):
-        if check_password_hash(user.password, auth.get("password")):
+        if not auth and not auth.get("username") or not auth.get("password"):
+            return jsonify({'Authentication': 'login requireddddd', 'is_authenticate': False, 'token': None})
+
+        user = User.query.filter_by(username=auth.get("username")).first()
+
+        if user.password == auth.get("password"):
+            # if check_password_hash(user.password, auth.get("password")):
             session['logged_in'] = True
-            token = jwt.encode({'id' : user.id}, SECRET_KEY, "HS256")
-        
-            return jsonify({'token' : token, 'is_authenticate': True}, 200)
-        
-        return jsonify({'Authentication': 'login required','is_authenticate': False,'token' : None})
+            token = jwt.encode({'id': user.id}, SECRET_KEY, "HS256")
+
+            return jsonify({'token': token, 'is_authenticated': True, 'user_id': user.id, 'username': user.username})
+
+        return jsonify({'Authentication': 'login required', 'is_authenticated': False, 'token': None})
+
+
+class Logout(Resource):
+    """
+    Author: AtharvaCM
+    POST:
+        desc:
+            logs the user out and invalidates the token
+        body:
+            - user_id
+    """
+
+    @token_required
+    def post(self, token):
+        # get params from request body
+        try:
+            user_id = request.json.get("user_id")
+        except Exception as why:
+            # Log input strip or etc. errors.
+            print("input is wrong. " + str(why))
+            # Return invalid input error.
+            return errors.INVALID_INPUT_422
+
+        # if user_id is None
+        if user_id is None:
+            # Return invalid input error.
+            return errors.INVALID_INPUT_422
+
+        # logout
+        session['logged_in'] = False
+
+        return jsonify(dict(is_authenticated=False, status="invalidated"))
+
 
 api = Api(auth)
 api.add_resource(Login, '/login')
+api.add_resource(Logout, '/logout')
 api.add_resource(Register, '/register')
