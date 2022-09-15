@@ -20,8 +20,9 @@ api = Api(recommendation)
 parser = reqparse.RequestParser()
 
 class CityRecommendList(Resource):
-    def get(self, id):
+    def get(self):
 
+        id = request.args.get('id', type=int)
         city = db.session.query(Usercitysearch
                                 ).filter(Usercitysearch.search_count >=5
                                          ).filter(Usercitysearch.user_id == id).limit(4).all()
@@ -34,7 +35,8 @@ class CityRecommendList(Resource):
             
         return jsonify(dict(data=city_serialized))
 
-    def post(self, id):
+    def post(self):
+        id = request.args.get('id', type=int)
         city = request.args.get('city', type=str)
         
         # check if city already exists based on search
@@ -56,9 +58,9 @@ class CityRecommendList(Resource):
             return jsonify(dict(status="City record added successfully"))
 
 
-class HotelRecommendList(Resource):
-    def get(self, id):
-    
+class HotelRecommendList(Resource):  
+    def get(self):
+        id = request.args.get('id', type=int)
         hotels = db.session.query(Userhotelsearch
                                   ).filter(Userhotelsearch.search_count >=5
                                          ).filter(Userhotelsearch.user_id == id).limit(4).all()
@@ -71,7 +73,8 @@ class HotelRecommendList(Resource):
             
         return jsonify(dict(data=hotel_serialized))
     
-    def post(self, id):
+    def post(self):
+        id = request.args.get('id', type=int)
         hotel_id = request.args.get('hotel_id', type=str)
         
         # check if hotel already exists based on search
@@ -92,5 +95,5 @@ class HotelRecommendList(Resource):
             return jsonify(dict(status="Hotel record added successfully"))
 
         
-api.add_resource(CityRecommendList, '/locations/<int:id>')
-api.add_resource(HotelRecommendList, '/locations/<int:id>/hotel')
+api.add_resource(CityRecommendList, '/city')
+api.add_resource(HotelRecommendList, '/hotel')
