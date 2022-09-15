@@ -4,8 +4,8 @@ tags:
   - Review
 parameters:
   - in: path
-    name: extra_feature
-    required: true
+    name: review_list_get
+    required: false
 
 responses:
   200:

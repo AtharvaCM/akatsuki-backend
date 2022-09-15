@@ -9,7 +9,7 @@ parameters:
     schema:
       type: object
       required:
-        - "city"
+        - city
       properties:
         city:
           type: "string"

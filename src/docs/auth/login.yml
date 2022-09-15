@@ -2,6 +2,7 @@ User log in
 ---
 tags:
   - Authentication
+summary: Logs user into the system
 parameters:
   - name: body
     description: The body should contain the user login credentials
@@ -15,11 +16,9 @@ parameters:
       properties:
         username:
           type: "string"
-          example: "john"
         password:
           type: "string"
-          format: password
-          example: "********"
+         
 responses:
   200:
     description: When a user successfully logs in
@@ -29,3 +28,11 @@ responses:
 
   401:
     description: A user supplies incorrect credentials
+
+
+
+
+
+
+
+

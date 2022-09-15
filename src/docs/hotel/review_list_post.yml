@@ -4,7 +4,7 @@ tags:
   - Review
 parameters:
   - in: path
-    name: extra_feature
+    name: review_list_post
     required: true
 
 responses:
