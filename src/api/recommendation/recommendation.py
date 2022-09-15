@@ -19,9 +19,35 @@ parser = reqparse.RequestParser()
 
 
 class CityRecommendList(Resource):
-    def get(self):
+    """
+    Author: Jyoti
+    GET:
+        desc:
+            returns list of cities which is searched more
+        params:
+            - id
 
-        id = request.args.get('id', type=int)
+    POST:
+        desc:
+            adds and update cities search count on each select
+        params:
+            - id
+            - city
+    """
+    def get(self):
+        try:
+            # get user_id
+            id = request.args.get('id', type=int)
+        except Exception as why:
+            # Log input strip or etc. errors.
+            print("user_id is wrong. " + str(why))
+            # Return invalid input error.
+            return errors.INVALID_INPUT_422
+
+        # check if user_id is not None
+        if id is None:
+            return errors.INVALID_INPUT_422
+        
         city = db.session.query(Usercitysearch
                                 ).filter(Usercitysearch.search_count >= 5
                                          ).filter(Usercitysearch.user_id == id).limit(4).all()
@@ -58,6 +84,21 @@ class CityRecommendList(Resource):
 
 
 class HotelRecommendList(Resource):
+    """
+    Author: Jyoti
+    GET:
+        desc:
+            returns list of hotels which is clicked more
+        params:
+            - id
+
+    POST:
+        desc:
+            adds and update hotels search count on each select
+        params:
+            - id
+            - hotel
+    """
     def get(self):
         try:
             # get user_id
