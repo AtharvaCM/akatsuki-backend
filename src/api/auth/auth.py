@@ -8,7 +8,6 @@ from src.database import db
 from src.models import User
 from src.api.error import errors
 
-import uuid
 import jwt
 import os
 
