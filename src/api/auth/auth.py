@@ -98,6 +98,8 @@ from datetime import datetime
 
 from src.database import db 
 from src.models import User
+from src.api.error import errors
+
 import uuid
 import jwt
 import os
@@ -141,20 +143,34 @@ class Register(Resource):
 
 class Login(Resource):
     def post(self):
+        try:
+            id, username, password =(
+                request.json.get('id'),
+                request.json.get("username"),
+                request.json.get("password")
+            )   
+        except Exception as why:
+            print("Input is wrong" + str(why))
+            return errors.INVALID_INPUT_422
+            
+        if username is None or password is None: 
+            return errors.NO_INPUT_400
         
-        auth = request.json
+        try :
+            user = User.query.filter_by(username=username).first()  
+            if not user:
+                return errors.DOES_NOT_EXIST
 
-        if not auth and not auth.get("username") or not auth.get("password") : 
-            return jsonify({'Authentication': 'login requireddddd','is_authenticate': False,'token' : None})   
-        user = User.query.filter_by(username=auth.get("username")).first()  
-        if user.password == auth.get("password"):
-        # if check_password_hash(user.password, auth.get("password")):
-            session['logged_in'] = True
-            token = jwt.encode({'id' : user.id}, SECRET_KEY, "HS256")
-        
-            return jsonify({'token' : token, 'is_authenticate': True}, 200)
-        
-        return jsonify({'Authentication': 'login required','is_authenticate': False,'token' : None})
+            if user.password == password:
+                session['logged_in'] = True
+                token = jwt.encode({id : user.id}, SECRET_KEY, "HS256")
+               
+                return jsonify({'token' : token, 'is_authenticate': True}, 200)
+    
+            return jsonify({'Authentication': 'login required','is_authenticate': False,'token' : None})
+        except Exception as why:
+            return errors.DOES_NOT_EXIST
+
 
 api = Api(auth)
 api.add_resource(Login, '/login')
