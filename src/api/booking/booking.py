@@ -82,7 +82,7 @@ class Bookings(Resource):
         db.session.add(new_Booking)
         db.session.commit()
 
-        return jsonify(dict(status="Booking successful", booking_code=booking_code))
+        return jsonify(dict(status="Booking successful", booking_code=booking_code, booking_date=booking_date))
 
 
 api.add_resource(Bookings, '/')
