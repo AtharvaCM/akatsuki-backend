@@ -1,15 +1,25 @@
   returns a list of extra features for a given hotel
 ---
-tags:
-  - Extra Feature
-parameters:
-  - in: path
-    name: extra_feature
-    required: true
+# /api/v1/hotels//<int:id>/extrafeatures
+  tags:
+    - Extra Features
+  summary: Extra feature list 
+  parameters:
+    - name: body
+      description: The body should contain hotel id
+      in: path
+      required: true
+      schema:
+        type: object
+        required:
+          - "id"
+        properties:
+          id:
+            type: "Integer"
 
-responses:
-  200:
-    description: returns extra features of a particular hotel
-  404:
-    description: No records found
-    
+  responses:
+    200:
+      description: returns extra features of a particular hotel
+    404:
+      description: No records found
+      
