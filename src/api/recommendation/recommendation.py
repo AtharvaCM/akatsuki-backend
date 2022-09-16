@@ -34,6 +34,7 @@ class CityRecommendList(Resource):
             - id
             - city
     """
+
     def get(self):
         try:
             # get user_id
@@ -47,7 +48,7 @@ class CityRecommendList(Resource):
         # check if user_id is not None
         if id is None:
             return errors.INVALID_INPUT_422
-        
+
         city = db.session.query(Usercitysearch
                                 ).filter(Usercitysearch.search_count >= 5
                                          ).filter(Usercitysearch.user_id == id).limit(4).all()
@@ -99,6 +100,7 @@ class HotelRecommendList(Resource):
             - id
             - hotel
     """
+
     def get(self):
         try:
             # get user_id
@@ -125,7 +127,6 @@ class HotelRecommendList(Resource):
         if len(hotels) == 0:
             return jsonify(dict(data=None, hotels_found=False))
 
-        show = requested_columns(request)
         hotel_serialized = []
 
         for hotel in hotels:
@@ -145,23 +146,31 @@ class HotelRecommendList(Resource):
         return jsonify(dict(data=hotel_serialized, hotels_found=True))
 
     def post(self):
-        id = request.args.get('id', type=int)
-        hotel_id = request.args.get('hotel_id', type=str)
+        try:
+            # get user_id & hotel_id
+            user_id = request.json.get('user_id')
+            hotel_id = request.json.get('hotel_id')
+        except Exception as why:
+            # Log input strip or etc. errors.
+            print("user_id or hotel_id is wrong. " + str(why))
+            # Return invalid input error.
+            return errors.INVALID_INPUT_422
 
         # check if hotel already exists based on search
-        hotelsearch = db.session.query(Userhotelsearch).filter(db.and_(Userhotelsearch.user_id == id,
+        hotelsearch = db.session.query(Userhotelsearch).filter(db.and_(Userhotelsearch.user_id == user_id,
                                                                        Userhotelsearch.hotel_id == hotel_id)).first()
 
+        # record present
         if hotelsearch is not None:
             count = hotelsearch.search_count + 1
-            print(count)
+            # print(count)
             setattr(hotelsearch, 'search_count', count)
             db.session.commit()
             return jsonify(dict(status="Hotel record updated successfully"))
         else:
             # Create new record for that hotel
             hotelrecord = Userhotelsearch(
-                hotel_id=hotel_id, search_count=1, user_id=id)
+                hotel_id=hotel_id, search_count=1, user_id=user_id)
             db.session.add(hotelrecord)
             db.session.commit()
             return jsonify(dict(status="Hotel record added successfully"))
