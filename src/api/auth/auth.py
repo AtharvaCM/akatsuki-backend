@@ -78,7 +78,7 @@ class Login(Resource):
                 session['logged_in'] = True
                 token = jwt.encode({id: user.id}, SECRET_KEY, "HS256")
 
-                return jsonify({'token': token, 'is_authenticated': True, 'username': user.username, 'user_id': user.id})
+                return jsonify({'token': token, 'is_authenticated': True, 'username': user.username, 'user_id': user.id, 'avatar': user.avatar})
 
             return jsonify({'Authentication': 'login required', 'is_authenticated': False, 'token': None})
         except Exception as why:
