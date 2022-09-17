@@ -70,8 +70,6 @@ class Login(Resource):
 
         try:
             user = User.query.filter_by(username=username).first()
-            if not user:
-                return jsonify({'username' : 'user not present'},errors.DOES_NOT_EXIST)
 
             if user.password == password:
                 session['logged_in'] = True
