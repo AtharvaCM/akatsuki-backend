@@ -170,7 +170,7 @@ class Model(db.Model):
             check = '%s.%s' % (path, key)
             if check in hide or key in hidden:
                 continue
-            if show_all or key is 'id' or check in show or key in default:
+            if show_all or key == 'id' or check in show or key in default:
                 ret_data[key] = getattr(self, key)
 
         for key in relationships:
@@ -240,7 +240,6 @@ hotel_extra_feature = db.Table(
 )
 
 
-
 class User(Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(30), unique=True, nullable=False)
@@ -255,6 +254,7 @@ class User(Model):
     recommendation = db.relationship('Usercitysearch', backref='user_recommed')
 
     hotels = db.relationship("Userhotelsearch", back_populates="user")
+
     def __repr__(self) -> str:
         return f'{self.username}'
 
@@ -374,20 +374,24 @@ class Review(Model):
 
     default_fields = ['id', 'review_date', 'rating', 'comment']
 
+
 class Usercitysearch(Model):
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     city = db.Column(db.String(50), nullable=False)
     search_count = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    db.UniqueConstraint(city,user_id)
+    db.UniqueConstraint(city, user_id)
+
     def __repr__(self) -> str:
         return f'{self.city}'
 
-    default_fields = ['user_id', 'city','search_count']
+    default_fields = ['user_id', 'city', 'search_count']
+
 
 class Userhotelsearch(Model):
-    hotel_id = db.Column(db.Integer, db.ForeignKey( 'hotel.id'), primary_key=True)
-    user_id =  db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    hotel_id = db.Column(db.Integer, db.ForeignKey(
+        'hotel.id'), primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     search_count = db.Column(db.Integer)
     user = db.relationship("User", back_populates="hotels")
     hotel = db.relationship("Hotel", back_populates="users")
@@ -395,5 +399,4 @@ class Userhotelsearch(Model):
     def __repr__(self) -> str:
         return f'{self.search_count}'
 
-    default_fields=['hotel_id', 'user_id', 'search_count']
-
+    default_fields = ['hotel_id', 'user_id', 'search_count']
