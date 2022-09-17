@@ -120,7 +120,7 @@ class RoomList(Resource):
         bookingDateCondition = db.and_(Booking.check_in_date >= check_in_date, Booking.check_out_date <= check_out_date)
         bookingDateCondition2 = db.and_(Booking.check_in_date <= check_in_date, Booking.check_out_date >= check_out_date)
 
-        condition = [Booking.check_in_date.between(check_in_date, check_out_date), Booking.check_out_date.between(check_in_date, check_out_date), bookingDateCondition, bookingDateCondition2]
+        condition = [Booking.check_in_date.between(check_in_date, check_out_date), Booking.check_out_date.between(check_in_date, check_out_date)]
         isFullyBooked = False
 
         # Calculating the sum of room booked for a particular room type of a hotel w.r.t check-in and check-out date
