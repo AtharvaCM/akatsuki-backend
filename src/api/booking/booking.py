@@ -10,6 +10,8 @@ from src.database import db
 from src.api.error import errors
 from src.models import Booking
 
+from src.api.auth.auth import token_required
+
 
 booking = Blueprint('booking', __name__, url_prefix='/api/v1/bookings')
 api = Api(booking)
@@ -32,7 +34,8 @@ class Bookings(Resource):
             - room_id
     """
 
-    def post(self):
+    @token_required
+    def post(self, token):
         # Write the timestamp
         booking_date = datetime.now()
 

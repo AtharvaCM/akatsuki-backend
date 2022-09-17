@@ -240,6 +240,7 @@ hotel_extra_feature = db.Table(
 )
 
 
+
 class User(Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(30), unique=True, nullable=False)
@@ -251,7 +252,9 @@ class User(Model):
 
     bookings = db.relationship('Booking', backref='user_booking')
     reviews = db.relationship('Review', backref='user_review')
+    recommendation = db.relationship('Usercitysearch', backref='user_recommed')
 
+    hotels = db.relationship("Userhotelsearch", back_populates="user")
     def __repr__(self) -> str:
         return f'{self.username}'
 
@@ -291,6 +294,8 @@ class Hotel(Model):
                                 lazy='subquery', backref=db.backref('hotels', lazy=True))
     extra_features = db.relationship(
         'Extrafeature', secondary=hotel_extra_feature, lazy='subquery', backref=db.backref('hotels', lazy=True))
+
+    users = db.relationship("Userhotelsearch", back_populates="hotel")
 
     def __repr__(self) -> str:
         return f'{self.name}'
@@ -368,3 +373,27 @@ class Review(Model):
         return f'{self.comment}'
 
     default_fields = ['id', 'review_date', 'rating', 'comment']
+
+class Usercitysearch(Model):
+    id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    city = db.Column(db.String(50), nullable=False)
+    search_count = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    db.UniqueConstraint(city,user_id)
+    def __repr__(self) -> str:
+        return f'{self.city}'
+
+    default_fields = ['user_id', 'city','search_count']
+
+class Userhotelsearch(Model):
+    hotel_id = db.Column(db.Integer, db.ForeignKey( 'hotel.id'), primary_key=True)
+    user_id =  db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    search_count = db.Column(db.Integer)
+    user = db.relationship("User", back_populates="hotels")
+    hotel = db.relationship("Hotel", back_populates="users")
+
+    def __repr__(self) -> str:
+        return f'{self.search_count}'
+
+    default_fields=['hotel_id', 'user_id', 'search_count']
+
