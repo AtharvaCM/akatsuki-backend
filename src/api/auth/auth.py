@@ -4,11 +4,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from datetime import datetime
 
-from src.database import db 
+from src.database import db
 from src.models import User
 from src.api.error import errors
 
-import uuid
 import jwt
 import os
 
@@ -57,32 +56,33 @@ class Register(Resource):
 class Login(Resource):
     def post(self):
         try:
-            id, username, password =(
+            id, username, password = (
                 request.json.get('id'),
                 request.json.get("username"),
                 request.json.get("password")
-            )   
+            )
         except Exception as why:
             print("Input is wrong" + str(why))
             return errors.INVALID_INPUT_422
-            
-        if username is None or password is None: 
+
+        if username is None or password is None:
             return errors.NO_INPUT_400
-        
-        try :
-            user = User.query.filter_by(username=username).first()  
+
+        try:
+            user = User.query.filter_by(username=username).first()
             if not user:
                 return jsonify({'username' : 'user not present'},errors.DOES_NOT_EXIST)
 
             if user.password == password:
                 session['logged_in'] = True
-                token = jwt.encode({id : user.id}, SECRET_KEY, "HS256")
-               
-                return jsonify({'token' : token, 'is_authenticate': True,'username':user.username,'user_id':user.id}, 200)
-    
-            return jsonify({'Authentication': 'login required','is_authenticate': False,'token' : None})
+                token = jwt.encode({id: user.id}, SECRET_KEY, "HS256")
+
+                return jsonify({'token': token, 'is_authenticated': True, 'username': user.username, 'user_id': user.id, 'avatar': user.avatar})
+
+            return jsonify({'Authentication': 'login required', 'is_authenticated': False, 'token': None})
         except Exception as why:
             return errors.DOES_NOT_EXIST
+
 
 class Logout(Resource):
     """
