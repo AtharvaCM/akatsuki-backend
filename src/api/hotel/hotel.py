@@ -28,8 +28,8 @@ from src.api.auth.auth import token_required
 
 # default values
 DEFAULT_LOCATION = 'Goa'
-DEFAULT_CHECK_IN_DATE = getCurrentDate("%y/%m/%d")
-DEFAULT_CHECK_OUT_DATE = getNextDate("%y/%m/%d")
+DEFAULT_CHECK_IN_DATE = getCurrentDate("%Y/%m/%d")
+DEFAULT_CHECK_OUT_DATE = getNextDate("%Y/%m/%d")
 DEFAULT_PAGE = 1
 
 hotel = Blueprint("hotel", __name__, url_prefix="/api/v1/hotels")
@@ -228,6 +228,7 @@ class RoomPriceList(Resource):
         check_out_date = request.args.get(
             'check_out_date', DEFAULT_CHECK_OUT_DATE, type=str)
 
+        print("default dates", check_in_date, check_out_date)
         # Calculating the sum of room booked for a particular room type of a hotel w.r.t check-in and check-out date
         query = db.session.query(Booking.room_id, db.func.sum(Booking.number_of_rooms).label('sum_b')
                                  ).filter(Booking.check_in_date >= check_in_date
