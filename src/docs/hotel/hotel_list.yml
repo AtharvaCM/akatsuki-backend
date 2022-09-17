@@ -3,19 +3,16 @@
 tags:
   - Hotel List
 parameters:
-  - in: path
-    name: hotel_list
+  - name: hotel_list
+    in: path
     required: true
     schema:
       type: object
       required:
-        - city
+        - "city"
       properties:
         city:
           type: "string"
-          example: "Pune"
-paths:
-
 responses:
   200:
     description: Returns a list of hotels

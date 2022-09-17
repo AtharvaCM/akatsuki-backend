@@ -1,17 +1,26 @@
   returns details of a particular hotel
 ---
-tags:
-  - Hotel details
-parameters:
-  - in: path
-    name: hotel_details
-    required: true
-
-responses:
-  200:
-    description: returns details of a particular hotel
-  404:
-    description: No records found
+    
+# /api/v1/hotels/:
+get:
+  tags:
+    - Hotel details
+  parameters:
+    - name: hotel_details
+      in: path
+      required: true
+  responses:
+    200:
+      description: returns details of a particular hotel
+      schema:
+        type: object
+        required:
+          - "id"
+        properties:
+          id:
+            type: integer
+    404:
+      description: No records found
   
  
 
