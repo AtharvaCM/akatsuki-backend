@@ -100,7 +100,10 @@ class HotelList(Resource):
         hotels_serialized = []
 
         for hotel in pagination.items:
-            hotels_serialized.append(hotel.to_dict(show=show))
+            hotel_dict = hotel.to_dict(show=show)
+            hotel_dict["amenities"] = [str(amenity)
+                                       for amenity in hotel.amenities]
+            hotels_serialized.append(hotel_dict)
 
         return jsonify(dict(has_next=pagination.has_next, data=hotels_serialized))
 
@@ -115,6 +118,8 @@ class HotelDetails(Resource):
 
         show = requested_columns(request)
         hotel_serialized = hotel.to_dict(show=show)
+        hotel_serialized["amenities"] = [
+            str(amenity) for amenity in hotel.amenities]
 
         return jsonify(dict(data=hotel_serialized))
 
@@ -436,3 +441,27 @@ class ReviewDetails(Resource):
 
 
 api.add_resource(ReviewDetails, '/<int:id>/reviews/check-review')
+
+
+class HotelAmenties(Resource):
+    """
+    Author: AtharvaCM
+    GET:
+        desc:
+            returns the list of amenities for the given hotel
+        params:
+            id
+    """
+
+    def get(self, id):
+        hotel = db.session.query(Hotel).filter_by(id=id).first()
+
+        amenities_serialized = []
+
+        for amenity in hotel.amenities:
+            amenities_serialized.append(str(amenity))
+
+        return jsonify(dict(data=amenities_serialized))
+
+
+api.add_resource(HotelAmenties, '/<int:id>/amenities')
