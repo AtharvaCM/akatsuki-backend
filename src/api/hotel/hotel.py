@@ -23,8 +23,8 @@ from src.api.error import errors
 
 # default values
 DEFAULT_LOCATION = 'Goa'
-DEFAULT_CHECK_IN_DATE = '2022-09-23'#getCurrentDate("%m/%d/%y")
-DEFAULT_CHECK_OUT_DATE = '2022-09-24'#getNextDate("%m/%d/%y")
+DEFAULT_CHECK_IN_DATE = '2022-09-23'  # getCurrentDate("%m/%d/%y")
+DEFAULT_CHECK_OUT_DATE = '2022-09-24'  # getNextDate("%m/%d/%y")
 DEFAULT_PAGE = 1
 
 hotel = Blueprint("hotel", __name__, url_prefix="/api/v1/hotels")
@@ -135,19 +135,21 @@ class RoomList(Resource):
             'check_in_date', DEFAULT_CHECK_IN_DATE, type=str)
         check_out_date = request.args.get(
             'check_out_date', DEFAULT_CHECK_OUT_DATE, type=str)
-        
-        bookingDateCondition = db.and_(Booking.check_in_date >= check_in_date, Booking.check_out_date <= check_out_date)
-        bookingDateCondition2 = db.and_(Booking.check_in_date <= check_in_date, Booking.check_out_date >= check_out_date)
+
+        bookingDateCondition = db.and_(
+            Booking.check_in_date >= check_in_date, Booking.check_out_date <= check_out_date)
+        bookingDateCondition2 = db.and_(
+            Booking.check_in_date <= check_in_date, Booking.check_out_date >= check_out_date)
 
         # Calculating the sum of room booked for a particular room type of a hotel w.r.t check-in and check-out date
         query = db.session.query(Booking.room_id, db.func.sum(Booking.number_of_rooms).label('sum_b')
                                  ).filter(db.or_(bookingDateCondition, bookingDateCondition2)).group_by(Booking.room_id).subquery()
-        
+
         # Getting the list of Room ids which are fully booked
         subquery2 = db.session.query(Room.id
                                      ).filter(Room.id == (query.c.room_id)
                                               ).filter(Room.total_rooms == (query.c.sum_b)).subquery()
-        
+
         # Getting the list of Rooms which are available for the selected hotel
         available_rooms = db.session.query(Room
                                            ).filter(Room.id.not_in(subquery2)
@@ -156,7 +158,7 @@ class RoomList(Resource):
         # Calculating the total numbers of rooms booked for a particular hotel w.r.t check-in and check-out date
         total_rooms_booked = [r[1] for r in db.session.query(Booking.hotel_id, db.func.sum(Booking.number_of_rooms).label('sum_r')
                                                              ).filter(db.or_(bookingDateCondition, bookingDateCondition2)
-                                                                               ).filter(Booking.hotel_id == id).group_by(Booking.hotel_id)]
+                                                                      ).filter(Booking.hotel_id == id).group_by(Booking.hotel_id)]
 
         # Calculating the total numbers of rooms in a particular hotel
         total_no_rooms = [row[1] for row in db.session.query(Room.hotel_id, db.func.sum(Room.total_rooms).label('sum_t')
@@ -175,8 +177,8 @@ class RoomList(Resource):
 
         # Getting the Sum of Rooms booked for that Room ID
         no_of_rooms_booked_query = db.session.query(Booking.room_id, db.func.sum(Booking.number_of_rooms).label('sum')
-                                                        ).filter(db.or_(bookingDateCondition, bookingDateCondition2)
-                                                                          ).group_by(Booking.room_id).all()
+                                                    ).filter(db.or_(bookingDateCondition, bookingDateCondition2)
+                                                             ).group_by(Booking.room_id).all()
 
         # This will return the list of rooms with available rooms attribute
         for room in available_rooms:
