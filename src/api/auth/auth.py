@@ -31,7 +31,12 @@ def token_required(f):
             return jsonify({'message': 'a valid token is missing in header'})
         try:
             data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-            current_user = User.query.filter_by(id=data['id']).first()
+            print('token decoded !', data.get('id'))
+            # current_user = User.query.filter_by(id=data['id']).first()
+            user_id = data.get('id')
+            current_user = db.session.query(
+                User).filter(id == user_id).first()
+            print("user found with this id")
         except:
             return jsonify({'message': 'token is invalid'})
 
@@ -73,7 +78,7 @@ class Login(Resource):
 
             if user.password == password:
                 session['logged_in'] = True
-                token = jwt.encode({id: user.id}, SECRET_KEY, "HS256")
+                token = jwt.encode({'id': user.id}, SECRET_KEY, "HS256")
 
                 return jsonify({'token': token, 'is_authenticated': True, 'username': user.username, 'user_id': user.id, 'avatar': user.avatar})
 
@@ -92,7 +97,7 @@ class Logout(Resource):
             - user_id
     """
 
-    @token_required
+    @ token_required
     def post(self, token):
         # get params from request body
         try:
