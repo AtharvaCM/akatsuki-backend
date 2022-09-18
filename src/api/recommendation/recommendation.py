@@ -31,7 +31,7 @@ class CityRecommendList(Resource):
         desc:
             adds and update cities search count on each select
         params:
-            - id
+            - id (user_id)
             - city
     """
 
@@ -62,11 +62,18 @@ class CityRecommendList(Resource):
         return jsonify(dict(data=city_serialized))
 
     def post(self):
-        id = request.args.get('id', type=int)
-        city = request.args.get('city', type=str)
+        try:
+            # get user_id and city
+            user_id = request.json.get('user_id')
+            city = request.json.get('city')
+        except Exception as why:
+            # Log input strip or etc. errors.
+            print("user_id is wrong. " + str(why))
+            # Return invalid input error.
+            return errors.INVALID_INPUT_422
 
         # check if city already exists based on search
-        citysearch = Usercitysearch.query.filter(db.and_(Usercitysearch.user_id == id,
+        citysearch = Usercitysearch.query.filter(db.and_(Usercitysearch.user_id == user_id,
                                                          Usercitysearch.city == city)).first()
 
         if citysearch is not None:
@@ -78,7 +85,8 @@ class CityRecommendList(Resource):
             return jsonify(dict(status="City record updated successfully"))
         else:
             # Create new record for that city
-            cityrecord = Usercitysearch(city=city, search_count=1, user_id=id)
+            cityrecord = Usercitysearch(
+                city=city, search_count=1, user_id=user_id)
             db.session.add(cityrecord)
             db.session.commit()
             return jsonify(dict(status="City record added successfully"))
