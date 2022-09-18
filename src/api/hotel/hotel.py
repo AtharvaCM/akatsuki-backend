@@ -356,7 +356,7 @@ class ReviewList(Resource):
         return jsonify(dict(data=reviews_serialized))
 
     @token_required
-    def post(self, id, token):
+    def post(self, token, id):
         # write the timestamp
         review_date = datetime.now()
 
