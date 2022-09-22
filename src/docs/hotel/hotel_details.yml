@@ -1,7 +1,5 @@
   returns details of a particular hotel
 ---
-    
-# /api/v1/hotels/:
 get:
   tags:
     - Hotel details
@@ -14,6 +12,8 @@ get:
       description: returns details of a particular hotel
       schema:
         type: object
+        items:
+          $ref: '#/<int:id>'
         required:
           - "id"
         properties:
